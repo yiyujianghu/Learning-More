@@ -4,12 +4,25 @@
 @author: Dong Jun
 @file: arraySort.py
 @time: 2019/4/4 9:50
-根据Sedgewick的《算法》第2章中排序的部分，将Java代码改写为python代码
 """
 import datetime
 import random
 
 class ArraySort():
+    """根据Sedgewick的《算法》第2章中排序的部分，将Java代码改写为python代码"""
+
+    def bubbleSort(self, array):
+        """
+        冒泡排序：比较相邻两个数的大小来分配交换顺序
+        """
+        for i in range(len(array)):
+            for j in range(1, len(array)):
+                if array[j-1] > array[j]:
+                    array[j-1], array[j] = array[j], array[j-1]
+                else:
+                    continue
+        return array
+
     def selectionSort(self, array):
         """
         选择排序：依次找到最小值并交换到序列的开头
@@ -26,6 +39,32 @@ class ArraySort():
         """
         插入排序：
         """
+        pass
+
+    def shellSort(self, array):
+        """
+        希尔排序：
+        """
+        pass
+
+    def mergeSort(self, array):
+        """
+        归并排序：
+        """
+        pass
+
+    def quickSort(self, array):
+        """
+        快速排序：
+        """
+        pass
+
+    def stackSort(self, array):
+        """
+        堆排序：
+        """
+        pass
+
 
     def isSorted(self, array):
         """
@@ -41,7 +80,7 @@ def result(func, exam):
     """将时间计算及信息打印部分打包成一个函数"""
     # 用于计算某种算法的时间
     time = datetime.timedelta(0)
-    for i in range(1000):
+    for i in range(100):
         random.shuffle(exam)    # 将测试用例随机打乱再排序，可增加统计效果
         curr1 = datetime.datetime.now()
         func(exam)
@@ -50,14 +89,15 @@ def result(func, exam):
 
     # 用于打印相关信息
     print("#function:", func.__name__)
-    print("--time assumme is:", time)
+    print("--time consumed is:", time)
     print("--is sorted?", a.isSorted(func(exam)))
 
 if __name__ == "__main__":
     # 初始化及定义测试用例
     a = ArraySort()
-    example = [i for i in range(100)]
+    example = [i for i in range(1000)]
 
     # 比较各种方法的优劣
     result(sorted, example)
+    result(a.bubbleSort, example)
     result(a.selectionSort, example)
