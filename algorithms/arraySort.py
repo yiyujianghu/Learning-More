@@ -39,13 +39,32 @@ class ArraySort():
         """
         插入排序：
         """
-        pass
+        for i in range(len(array)-1):
+            for j in range(i+1, 0, -1):
+                if array[j] < array[j-1]:
+                    array[j], array[j-1] = array[j-1], array[j]
+                else:
+                    break
+        return array
 
     def shellSort(self, array):
         """
         希尔排序：
         """
-        pass
+        k = 3
+        while k>0:
+            if k >= len(array):
+                continue
+            else:
+                for x in range(0, k):
+                    for y in range(x, len(array)-k, k):
+                        for z in range(y+k, 0, -k):
+                            if array[z] < array[z-k]:
+                                array[z], array[z-k] = array[z-k], array[z]
+                            else:
+                                break
+            k -= 1
+        return array
 
     def mergeSort(self, array):
         """
@@ -76,28 +95,39 @@ class ArraySort():
                 return False
         return True
 
-def result(func, exam):
-    """将时间计算及信息打印部分打包成一个函数"""
-    # 用于计算某种算法的时间
-    time = datetime.timedelta(0)
-    for i in range(100):
-        random.shuffle(exam)    # 将测试用例随机打乱再排序，可增加统计效果
-        curr1 = datetime.datetime.now()
-        func(exam)
-        curr2 = datetime.datetime.now()
-        time += (curr2-curr1)
+    @staticmethod
+    def resultPrint(func, exam):
+        """将时间计算及信息打印部分打包成一个函数"""
+        # 用于计算某种算法的时间
+        time = datetime.timedelta(0)
+        judge = True
+        for i in range(5000):
+            random.shuffle(exam)    # 将测试用例随机打乱再排序，可增加统计效果
+            curr1 = datetime.datetime.now()
+            result = func(exam)
+            curr2 = datetime.datetime.now()
+            judge = judge & a.isSorted(result)
+            time += (curr2-curr1)
 
-    # 用于打印相关信息
-    print("#function:", func.__name__)
-    print("--time consumed is:", time)
-    print("--is sorted?", a.isSorted(func(exam)))
+        # 用于打印相关信息
+        print("#function:", func.__name__)
+        print("--time consumed is:", time)
+        print("--is sorted?", judge)
 
 if __name__ == "__main__":
     # 初始化及定义测试用例
     a = ArraySort()
-    example = [i for i in range(1000)]
+    example = [i for i in range(100)]
 
     # 比较各种方法的优劣
-    result(sorted, example)
-    result(a.bubbleSort, example)
-    result(a.selectionSort, example)
+    ArraySort.resultPrint(sorted, example)
+    ArraySort.resultPrint(a.bubbleSort, example)
+    ArraySort.resultPrint(a.selectionSort, example)
+    ArraySort.resultPrint(a.insertionSort, example)
+    ArraySort.resultPrint(a.shellSort, example)
+
+
+
+    # x = [i for i in range(10)]
+    # random.shuffle(x)
+    # a.shellSort([5, 7, 6,   1, 2, 3, 8, 4, 9, 0])
