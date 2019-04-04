@@ -22,6 +22,7 @@ class ArraySort():
                     continue
         return array
 
+
     def selectionSort(self, array):
         """选择排序：依次找到最小值并交换到序列的开头"""
         for i in range(len(array)):
@@ -32,6 +33,7 @@ class ArraySort():
             array[i], array[minIndex] = array[minIndex], array[i]
         return array
 
+
     def insertionSort(self, array):
         """插入排序：模仿整牌的方法，将后一个插入到前边有序数组的指定位置"""
         for i in range(len(array)-1):
@@ -41,6 +43,7 @@ class ArraySort():
                 else:
                     break
         return array
+
 
     def shellSort(self, array):
         """希尔排序：基于插入排序，设定某个阈值后分段排序"""
@@ -110,9 +113,7 @@ class ArraySort():
 
 
     def stackSort(self, array):
-        """
-        堆排序：
-        """
+        """堆排序："""
         pass
 
 
