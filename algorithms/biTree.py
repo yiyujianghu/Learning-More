@@ -82,7 +82,7 @@ class Tree():
             print(node.val, end=" ")
 
     def breadthFirstSearch(self, node):
-        """宽度优先遍历，层次遍历"""
+        """宽度优先遍历，层次遍历：利用队列的先入先出来弹出node节点"""
         if not node:
             return
         else:
@@ -97,7 +97,7 @@ class Tree():
                     nodeQueue.append(cursor.right)
 
     def depthFirstSearch(self, node):
-        """深度优先遍历"""
+        """深度优先遍历：利用栈的后入先出来弹出node节点"""
         if not node:
             return
         else:
