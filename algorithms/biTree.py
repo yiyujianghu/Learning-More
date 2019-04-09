@@ -92,57 +92,101 @@ class Tree():
 
     def preSearch(self):
         """前序遍历的非递归方法"""
-        pass
+        node = self.root
+        if not node:
+            return
+        else:
+            nodeStack = []
+            result = []
+            while node or nodeStack:
+                while node:
+                    result.append(node.val)
+                    nodeStack.append(node)
+                    node = node.left
+                node = nodeStack.pop()
+                node = node.right
+            return result
+
 
     def inSearch(self):
         """中序遍历的非递归方法"""
-        pass
+        node = self.root
+        if not node:
+            return
+        else:
+            nodeStack = []
+            result = []
+            while node or nodeStack:
+                while node:
+                    nodeStack.append(node)
+                    node = node.left
+                node = nodeStack.pop()
+                result.append(node.val)
+                node = node.right
+            return result
 
     def backSearch(self):
         """后序遍历的非递归方法"""
-        pass
+        node = self.root
+        if not node:
+            return
+        else:
+            nodeStack1 = []
+            nodeStack2 = []
+            result = []
+            while node or nodeStack1:
+                while node:
+                    nodeStack1.append(node)
+                    nodeStack2.append(node)
+                    node = node.right
+                node = nodeStack1.pop()
+                node = node.left
+            while nodeStack2:
+                result.append(nodeStack2.pop().val)
+            return result
 
 
     def breadthFirstSearch(self):
         """宽度优先遍历，层次遍历：利用队列的先入先出来弹出node节点"""
         node = self.root
-        result = []
         if not node:
             return
         else:
+            result = []
             nodeQueue = deque()
             nodeQueue.append(node)
             while nodeQueue:
-                cursor = nodeQueue.popleft()
-                result.append(cursor.val)
-                if cursor.left:
-                    nodeQueue.append(cursor.left)
-                if cursor.right:
-                    nodeQueue.append(cursor.right)
+                node = nodeQueue.popleft()
+                result.append(node.val)
+                if node.left:
+                    nodeQueue.append(node.left)
+                if node.right:
+                    nodeQueue.append(node.right)
             return result
 
     def depthFirstSearch(self):
         """深度优先遍历：利用栈的后入先出来弹出node节点"""
         node = self.root
-        result = []
         if not node:
             return
         else:
+            result = []
             nodeStack = []
             nodeStack.append(node)
             while nodeStack:
-                cursor = nodeStack.pop()
-                result.append(cursor.val)
-                if cursor.right:
-                    nodeStack.append(cursor.right)
-                if cursor.left:
-                    nodeStack.append(cursor.left)
+                node = nodeStack.pop()
+                result.append(node.val)
+                if node.right:
+                    nodeStack.append(node.right)
+                if node.left:
+                    nodeStack.append(node.left)
             return result
 
     @staticmethod
     def orderPrint(func):
         orderList = {"preOrder": "前序遍历: ", "inOrder": "中序遍历: ", "backOrder": "后序遍历: "}
-        searchList = {"breadthFirstSearch": "宽度优先遍历: ", "depthFirstSearch": "深度优先遍历: "}
+        searchList = {"breadthFirstSearch": "宽度优先遍历: ", "depthFirstSearch": "深度优先遍历: ",
+                      "preSearch": "前序(非递归): ", "inSearch": "中序(非递归): ", "backSearch": "后序(非递归): "}
         if func.__name__ in orderList:
             print(orderList[func.__name__], end="")
             func(tree.root)
@@ -160,13 +204,13 @@ def createTree(L):
     tree = Tree()
     for x in L:
         tree.addNode(x)
-    tree.root.left.left.left = treeNode(7)   # 这里简单的加入一个孤立节点
-    tree.root.left.right.right = treeNode(10)   # 这里简单的加入一个孤立节点
+    # tree.root.left.left.left = treeNode(7)   # 这里简单的加入一个孤立节点
+    tree.root.right.right.right = treeNode(14)   # 这里简单的加入一个孤立节点
     return tree
 
 
 if __name__ == "__main__":
-    L = [i for i in range(7)]
+    L = [i for i in range(10)]
     tree = createTree(L)
     print("二叉树的结构: ", tree.tree2dict(tree.root))    # 这里可以观察树的内部结构
     print("二叉树的深度: {}层".format(tree.getDepth(tree.root)))
