@@ -39,17 +39,26 @@ class Tree():
                 self.nodeList.pop(0)
                 self.cursor = self.nodeList[0]
 
+    def getDepth(self, node):
+        """求解树的深度"""
+        if not node:
+            return 0
+        else:
+            ldepth = self.getDepth(node.left)
+            rdepth = self.getDepth(node.right)
+            return 1+max(ldepth, rdepth)
+
     def tree2dict(self, node):
         """简单的二叉树转字典的函数。"""
         if node.left and node.right:
             dictTree = {}
-            dictTree[node.val] = {"left":self.tree2dict(node.left), "right":self.tree2dict(node.right)}
+            dictTree[node.val] = {"left": self.tree2dict(node.left), "right": self.tree2dict(node.right)}
         elif node.left:
             dictTree = {}
-            dictTree[node.val] = {"left":self.tree2dict(node.left)}
+            dictTree[node.val] = {"left": self.tree2dict(node.left)}
         elif node.right:
             dictTree = {}
-            dictTree[node.val] = {"right":self.tree2dict(node.right)}
+            dictTree[node.val] = {"right": self.tree2dict(node.right)}
         else:
             dictTree = node.val
         return dictTree
@@ -81,8 +90,23 @@ class Tree():
             self.backOrder(node.right)
             print(node.val, end=" ")
 
-    def breadthFirstSearch(self, node):
+    def preSearch(self):
+        """前序遍历的非递归方法"""
+        pass
+
+    def inSearch(self):
+        """中序遍历的非递归方法"""
+        pass
+
+    def backSearch(self):
+        """后序遍历的非递归方法"""
+        pass
+
+
+    def breadthFirstSearch(self):
         """宽度优先遍历，层次遍历：利用队列的先入先出来弹出node节点"""
+        node = self.root
+        result = []
         if not node:
             return
         else:
@@ -90,14 +114,17 @@ class Tree():
             nodeQueue.append(node)
             while nodeQueue:
                 cursor = nodeQueue.popleft()
-                print(cursor.val, end=" ")
+                result.append(cursor.val)
                 if cursor.left:
                     nodeQueue.append(cursor.left)
                 if cursor.right:
                     nodeQueue.append(cursor.right)
+            return result
 
-    def depthFirstSearch(self, node):
+    def depthFirstSearch(self):
         """深度优先遍历：利用栈的后入先出来弹出node节点"""
+        node = self.root
+        result = []
         if not node:
             return
         else:
@@ -105,19 +132,27 @@ class Tree():
             nodeStack.append(node)
             while nodeStack:
                 cursor = nodeStack.pop()
-                print(cursor.val, end=" ")
+                result.append(cursor.val)
                 if cursor.right:
                     nodeStack.append(cursor.right)
                 if cursor.left:
                     nodeStack.append(cursor.left)
+            return result
 
     @staticmethod
     def orderPrint(func):
-        orderList = {"preOrder": "前序遍历: ", "inOrder": "中序遍历: ", "backOrder": "后序遍历: ",
-                     "breadthFirstSearch": "宽度优先遍历", "depthFirstSearch": "深度优先遍历"}
-        print(orderList[func.__name__], end="")
-        func(tree.root)
-        print("")
+        orderList = {"preOrder": "前序遍历: ", "inOrder": "中序遍历: ", "backOrder": "后序遍历: "}
+        searchList = {"breadthFirstSearch": "宽度优先遍历: ", "depthFirstSearch": "深度优先遍历: "}
+        if func.__name__ in orderList:
+            print(orderList[func.__name__], end="")
+            func(tree.root)
+            print(" ")
+        elif func.__name__ in searchList:
+            print(searchList[func.__name__], end="")
+            re = func()
+            print(" ".join([str(x) for x in re]))
+        else:
+            print("没有找到这种遍历方法！")
 
 
 def createTree(L):
@@ -133,11 +168,19 @@ def createTree(L):
 if __name__ == "__main__":
     L = [i for i in range(7)]
     tree = createTree(L)
-    print(tree.tree2dict(tree.root))    # 这里可以观察树的内部结构
+    print("二叉树的结构: ", tree.tree2dict(tree.root))    # 这里可以观察树的内部结构
+    print("二叉树的深度: {}层".format(tree.getDepth(tree.root)))
+    print("\n-----三种遍历的递归方法-----")
     Tree.orderPrint(tree.preOrder)
     Tree.orderPrint(tree.inOrder)
     Tree.orderPrint(tree.backOrder)
+    print("\n-----五种遍历的非递归方法-----")
     Tree.orderPrint(tree.breadthFirstSearch)
     Tree.orderPrint(tree.depthFirstSearch)
+    Tree.orderPrint(tree.preSearch)
+    Tree.orderPrint(tree.inSearch)
+    Tree.orderPrint(tree.backSearch)
+
+
 
 
