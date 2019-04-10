@@ -66,7 +66,7 @@ class Tree():
     def preOrder(self, node):
         """前序遍历"""
         if not node:
-            return
+            return None
         else:
             print(node.val, end=" ")
             self.preOrder(node.left)
@@ -75,7 +75,7 @@ class Tree():
     def inOrder(self, node):
         """中序遍历"""
         if not node:
-            return
+            return None
         else:
             self.inOrder(node.left)
             print(node.val, end=" ")
@@ -84,7 +84,7 @@ class Tree():
     def backOrder(self, node):
         """后序遍历"""
         if not node:
-            return
+            return None
         else:
             self.backOrder(node.left)
             self.backOrder(node.right)
@@ -94,7 +94,7 @@ class Tree():
         """前序遍历的非递归方法"""
         node = self.root
         if not node:
-            return
+            return None
         else:
             nodeStack = []
             result = []
@@ -112,7 +112,7 @@ class Tree():
         """中序遍历的非递归方法"""
         node = self.root
         if not node:
-            return
+            return None
         else:
             nodeStack = []
             result = []
@@ -129,7 +129,7 @@ class Tree():
         """后序遍历的非递归方法"""
         node = self.root
         if not node:
-            return
+            return None
         else:
             nodeStack1 = []
             nodeStack2 = []
@@ -150,7 +150,7 @@ class Tree():
         """宽度优先遍历，层次遍历：利用队列的先入先出来弹出node节点"""
         node = self.root
         if not node:
-            return
+            return None
         else:
             result = []
             nodeQueue = deque()
@@ -168,7 +168,7 @@ class Tree():
         """深度优先遍历：利用栈的后入先出来弹出node节点"""
         node = self.root
         if not node:
-            return
+            return None
         else:
             result = []
             nodeStack = []
