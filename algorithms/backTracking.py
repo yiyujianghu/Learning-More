@@ -27,7 +27,20 @@ class BackTracking():
 
     def generateParenthesis(self, n):
         """生成有效的括号"""
-        pass
+        parList = []
+        def DFS(left, right, s, par):
+            print("-----"*3)
+            print("left, right, s, par", left, right, s, par)
+            if left==0 and right==0:
+                par.append(s)
+            else:
+                if left>0:
+                    DFS(left-1, right, s+"(", par)
+                if right>left:
+                    DFS(left, right-1, s+")", par)
+        DFS(n, n, "", parList)
+        return parList
+
 
     def subSet(self):
         """求解一个集合所有的子集"""
@@ -40,4 +53,4 @@ class BackTracking():
 
 if __name__ == "__main__":
     solution = BackTracking()
-    
+    print("生成括号:", solution.generateParenthesis(3))
