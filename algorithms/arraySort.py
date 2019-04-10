@@ -159,10 +159,3 @@ if __name__ == "__main__":
     ArraySort.resultPrint(a.shellSort, example)
     ArraySort.resultPrint(a.mergeSort, example)
     ArraySort.resultPrint(a.quickSort, example)
-
-
-
-    # x = [i for i in range(10)]
-    # random.shuffle(x)
-    # re = a.quickSort([5, 7, 6, 1, 2, 3, 8, 4, 9, 0])
-    # print("result", re)

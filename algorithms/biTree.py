@@ -219,12 +219,9 @@ if __name__ == "__main__":
     Tree.orderPrint(tree.inOrder)
     Tree.orderPrint(tree.backOrder)
     print("\n-----五种遍历的非递归方法-----")
-    Tree.orderPrint(tree.breadthFirstSearch)
-    Tree.orderPrint(tree.depthFirstSearch)
     Tree.orderPrint(tree.preSearch)
     Tree.orderPrint(tree.inSearch)
     Tree.orderPrint(tree.backSearch)
-
-
-
+    Tree.orderPrint(tree.breadthFirstSearch)
+    Tree.orderPrint(tree.depthFirstSearch)
 
