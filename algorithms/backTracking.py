@@ -48,7 +48,7 @@ class BackTracking():
             步骤：  1、所有的生成过程都是类似于裂变的构建过程，故而先弄清楚裂变的方法与条件（参考严蔚敏《数据结构》P150）；
                     （1）此问题裂变的过程是加入/不加入新的元素，裂变的条件无，即完全裂变；括号生成问题裂变的条件为左大于右；
                     （2）裂变的过程用递归控制，裂变的条件用条件语句if控制
-                    2、弄清裂变的终止条件，即无法再发生裂变为止，遍历到深度最深的地方，一般用if语句计数判断；
+                    2、弄清裂变的终止条件，即无法再发生裂变为止，遍历到深度最深的地方，一般用if语句计数判断，返回None终止递归；
                     3、一般来说裂变过程可看作类似并行、互不干扰的过程，故而结果result是在最终裂变结束的地方添加每个结果，
                        故而可设置全局self.result，在条件终止处添加每一个终止结果，如果手推代码会清晰很多；"""
         ###############################提供另一种迭代解法###########################################
@@ -62,20 +62,56 @@ class BackTracking():
             return result
         #############################################################################################
         self.result = []
-        def DFS(nums, subset, index):
-            if index == len(nums):
+        self.nums = nums
+        def DFS(subset, index):
+            if index == len(self.nums):
                 self.result.append(subset)
                 return None
-            DFS(nums, subset+[nums[index]], index+1)
-            DFS(nums, subset, index+1)
-        DFS(nums, [], 0)
+            DFS(subset+[self.nums[index]], index+1)
+            DFS(subset, index+1)
+        DFS([], 0)
         return self.result
 
 
     def permute(self, nums):
-        """全排列问题"""
-        pass
+        """全排列问题：裂变过程，采用for遍历，但是只加入不重复的元素"""
+        self.result = []
+        N = len(nums)
+        def DFS(nums, per):
+            if len(per)==N:
+                self.result.append(per)
+            else:
+                for i in range(len(nums)):
+                    DFS(nums[:i]+nums[i+1:], per+[nums[i]])
+        DFS(nums, [])
+        return self.result
 
+    def combine(self, n, k):
+        """组合问题：输入[1,2,3,4]和2，返回所有升序的两个数的组合"""
+        self.result = []
+        def DFS(nums, com):
+            if len(com)==k:
+                self.result.append(com)
+            else:
+                for i in range(len(nums)):
+                    DFS(nums[i+1:], com+[nums[i]])
+        nums = [x+1 for x in range(n)]
+        DFS(nums, [])
+        return self.result
+
+    def combinationSum(self, candidates, target):
+        """组合总和问题：输入候选=[2,3,6,7]和总和=7，返回能求和的组合总数"""
+        def DFS(target, comb, start):
+            for i in range(start, len(candidates)):
+                diff = target - candidates[i]
+                if diff == 0:
+                    self.result.append(comb+[candidates[i]])
+                elif diff > 0:
+                    DFS(diff, comb+[candidates[i]], i)
+        self.result = []
+        candidates.sort()
+        DFS(target, [], 0)
+        return self.result
 
     def eightQueens(self):
         """8皇后问题"""
@@ -87,3 +123,5 @@ if __name__ == "__main__":
     print("生成括号:", solution.generateParenthesis(3))
     print("集合子集:", solution.subSet([1, 2, 3]))
     print("全排列:  ", solution.permute([1, 2, 3]))
+    print("组合问题:", solution.combine(4, 2))
+    print("组合总和问题:", solution.combinationSum([2,3,6,7], 7))
