@@ -16,6 +16,8 @@
 
 * 学习回溯算法：<br>
 1、括号生成问题<br>
+https://github.com/yiyujianghu/Learning-More/blob/master/data/figure/algorithms/parenthesis.jpg<br>
 2、子集问题<br>
+https://github.com/yiyujianghu/Learning-More/blob/master/data/figure/algorithms/subset.jpg<br>
 3、全排列问题<br>
 4、8皇后问题<br>
