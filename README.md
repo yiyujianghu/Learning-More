@@ -18,7 +18,7 @@
 3、根据DFS初步学会回溯算法的基本思想；<br>
 
 * 学习回溯算法：<br>
-注：分析方法详见代码注释，手动推导图片如下；
+注：分析方法详见代码注释，手动推导代码的过程如下；<br>
 1、括号生成问题<br>
 ![Image text](https://github.com/yiyujianghu/Learning-More/blob/master/data/figure/algorithms/parenthesis.jpg)<br>
 2、子集问题<br>
