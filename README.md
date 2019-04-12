@@ -24,3 +24,4 @@
 2、子集问题<br>
 ![Image text](https://github.com/yiyujianghu/Learning-More/blob/master/data/figure/algorithms/subset.jpg)<br>
 3、8皇后问题<br>
+![Image text](https://github.com/yiyujianghu/Learning-More/blob/master/data/figure/algorithms/queens.jpg)<br>
