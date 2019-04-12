@@ -113,9 +113,37 @@ class BackTracking():
         DFS(target, [], 0)
         return self.result
 
-    def eightQueens(self):
-        """8皇后问题"""
-        pass
+    def eightQueens(self, n):
+        """ 8皇后问题：记录一下踩过的坑
+            1、 首先分裂过程很简单，以4皇后为例，1分4->4分16->16分64->64分256即终止，n皇后摆放完毕即终止；
+            2、 剪枝规则，不能（1）同行（2）同列（3）同斜，首先摆放时按行依次摆放，即可满足条件（1）；
+                接着条件（2）判定j1!=j2，条件（2）判定(i1-j1)!=(i2-j2),(i1+j1)!=(i2+j2)；
+                满足终止条件则停止向下进展，否则则继续探索；
+            3、 调试过程中出了许多bug，故而化繁为简，N皇后化简为4皇后，4皇后化简为2皇后；
+                2皇后的条件为不同行（1）不同列（2），只有四种分裂情况，并且只有两种正确解法，手推画图都很简单；
+                首先考虑DFS函数，按行依次摆放满足条件（1），在解空间中判定条件（2）来考虑是否递归，很快搞定了；
+            4、 将4皇后的条件（3）加入判定后出了很多问题：
+                首先是判定终止是跳出循环还是直接return跳出函数？递归是写在判定循环中还是判定循环外？
+                结果发现都不行，最后想了想加入一个判定函数来解决，把判定条件打包都扔进去，返回bool类型，
+                只要当前分支没有违背规则就继续执行，一旦违背规则也就终端这条路径，这样就很简单地处理了这个问题了。"""
+        def DFS(index, sol):
+            if index==n:
+                self.result.append(sol)
+            else:
+                for i in range(n):
+                    rowi = (index, i)
+                    if judge(rowi, sol):
+                        DFS(index + 1, sol + [rowi])
+
+        def judge(rowi, sol):
+            for j in sol:
+                if rowi[1]==j[1] or (rowi[0]-rowi[1])==(j[0]-j[1]) or (rowi[0]+rowi[1])==(j[0]+j[1]):
+                    return False
+            return True
+
+        self.result = []
+        DFS(0, [])
+        return self.result
 
 
 if __name__ == "__main__":
@@ -124,4 +152,5 @@ if __name__ == "__main__":
     print("集合子集:", solution.subSet([1, 2, 3]))
     print("全排列:  ", solution.permute([1, 2, 3]))
     print("组合问题:", solution.combine(4, 2))
-    print("组合总和问题:", solution.combinationSum([2,3,6,7], 7))
+    print("组合总和问题:", solution.combinationSum([2, 3, 6, 7], 7))
+    print("8皇后问题:", solution.eightQueens(4))
