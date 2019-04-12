@@ -127,7 +127,7 @@ class BackTracking():
                 结果发现都不行，最后想了想加入一个判定函数来解决，把判定条件打包都扔进去，返回bool类型，
                 只要当前分支没有违背规则就继续执行，一旦违背规则也就终端这条路径，这样就很简单地处理了这个问题了。"""
         def DFS(index, sol):
-            if index==n:
+            if index == n:
                 self.result.append(sol)
             else:
                 for i in range(n):
@@ -137,7 +137,7 @@ class BackTracking():
 
         def judge(rowi, sol):
             for j in sol:
-                if rowi[1]==j[1] or (rowi[0]-rowi[1])==(j[0]-j[1]) or (rowi[0]+rowi[1])==(j[0]+j[1]):
+                if rowi[1] == j[1] or (rowi[0]-rowi[1]) == (j[0]-j[1]) or (rowi[0]+rowi[1]) == (j[0]+j[1]):
                     return False
             return True
 
