@@ -66,6 +66,18 @@ class BST():
             root.right = self.sortedArrayToBST(nums[len(nums)//2+1: len(nums)])
             return root
 
+    def findNode(self, root, val):
+        """找到val值对应的相应节点，注意当val值不在二叉树中时应当返回一个空节点"""
+        if not self.query(root, val):
+            return treeNode(None)
+        else:
+            if root.val == val:
+                return root
+            elif root.val > val:
+                return self.findNode(root.left, val)
+            elif root.val < val:
+                return self.findNode(root.right, val)
+
     def findMin(self, root):
         """查询树中的最小值的节点，最小值一定在左子树中"""
         if root.left:
@@ -108,9 +120,25 @@ class BST():
             return False
         return self.isValidBST(root.left, left, root) and self.isValidBST(root.right, root, right)
 
-    def delNode(self, root):
-        """删除树中的指定节点"""
-        pass
+    def deleteNode(self, root, key):
+        """ 删除树中的指定节点，
+            思路：1、先找到该节点，方法是递归搜索；
+                  2、如果该值节点仅仅右左子树或者右子树，则删除该节点并指向左/右节点；
+                  3、如果同时有左节点与右节点，则关键在于从右子树中删除找到最小值节点（具体方法见图示）；"""
+        if not root:
+            return None
+        else:
+            if root.val > key:
+                root.left = self.deleteNode(root.left, key)
+            elif root.val < key:
+                root.right = self.deleteNode(root.right, key)
+            else:
+                if not root.left or not root.right:
+                    root = root.left if root.left else root.right
+                else:
+                    root.val = self.findMin(root.right).val
+                    root.right = self.deleteNode(root.right, root.val)
+            return root
 
 
     def clearTree(self):
@@ -143,6 +171,10 @@ if __name__ == "__main__":
     print("*"*50)
     print("*****查询二叉树中的指定节点*****")
     print("查询某个数字是否在搜索树中：", tree.query(tree.root, 6))
+    print("查询某个数字是否在搜索树中：", tree.findNode(tree.root, 6).val)
     print("寻找树中最大值：", tree.findMax(tree.root).val)
     print("寻找树中最小值：", tree.findMin(tree.root).val)
     print("*****删除二叉树中的指定节点*****")
+    print("删除树中的某个节点", end=" --> ")
+    tree.deleteNode(tree.root, 8)
+    print("二叉树的结构: ", tree.tree2dict(tree.root))  # 这里可以观察树的内部结构
