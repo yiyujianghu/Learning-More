@@ -56,18 +56,52 @@ class BST():
             dictTree = node.val
         return dictTree
 
+    def sortedArrayToBST(self, nums):
+        """将数组转化为平衡二叉树：先将数组有序排列，然后类似于二分查找从中间构建根节点，然后不断递归"""
+        if not nums:
+            return None
+        else:
+            nums.sort()
+            root = treeNode(nums[len(nums)//2])
+            root.left = self.sortedArrayToBST(nums[0: len(nums)//2])
+            root.right = self.sortedArrayToBST(nums[len(nums)//2+1: len(nums)])
+            return root
+
+    def findMin(self, root):
+        """查询树中的最小值的节点，最小值一定在左子树中"""
+        if root.left:
+            return self.findMin(root.left)
+        else:
+            return root
+
+    def findMax(self, root):
+        """查询树中的最大的节点，最大值一定在右子树中"""
+        if root.right:
+            return self.findMax(root.right)
+        else:
+            return root
+
+
+    def clearTree(self):
+        """清除树的各个节点"""
+        self.root.left = self.root.right = None
+        self.root.val = None
+
 
 
 def createTree(root, nums):
-    """给定一个数组，构建一棵BST"""
+    """给定一个数组，按照insert方法构建一棵BST"""
     for i in nums:
         root = tree.insert(root, i)
 
 
 if __name__ == "__main__":
-    root = treeNode(5)
-    tree = BST(root)
+    tree = BST(treeNode(5))
     createTree(tree.root, [1, 2, 8, 9, 6, 7, 4, 3])
-    print("二叉树的结构: ", tree.tree2dict(tree.root))  # 这里可以观察树的内部结构，感觉结构颇为怪奇
-    print("查询某个数字是否在搜索树中：", tree.query(root, 4))
-
+    print("二叉树的结构: ", tree.tree2dict(tree.root))  # 这里可以观察树的内部结构
+    tree.clearTree()
+    tree.root = tree.sortedArrayToBST([1, 2, 8, 9, 5, 6, 7, 4, 3])
+    print("二叉树的结构: ", tree.tree2dict(tree.root))  # 这里可以观察树的内部结构
+    print("查询某个数字是否在搜索树中：", tree.query(tree.root, 6))
+    print("寻找树中最大值：", tree.findMax(tree.root).val)
+    print("寻找树中最小值：", tree.findMin(tree.root).val)
