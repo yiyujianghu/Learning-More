@@ -43,17 +43,16 @@ class BST():
 
     def tree2dict(self, node):
         """简单的二叉树转字典的函数。"""
-        if node.left and node.right:
-            dictTree = {}
-            dictTree[node.val] = {"left": self.tree2dict(node.left), "right": self.tree2dict(node.right)}
-        elif node.left:
-            dictTree = {}
-            dictTree[node.val] = {"left": self.tree2dict(node.left)}
-        elif node.right:
-            dictTree = {}
-            dictTree[node.val] = {"right": self.tree2dict(node.right)}
-        else:
+        if not node.left and not node.right:
             dictTree = node.val
+        else:
+            dictTree = {}
+            if node.left and node.right:
+                dictTree[node.val] = {"left": self.tree2dict(node.left), "right": self.tree2dict(node.right)}
+            elif node.left:
+                dictTree[node.val] = {"left": self.tree2dict(node.left)}
+            elif node.right:
+                dictTree[node.val] = {"right": self.tree2dict(node.right)}
         return dictTree
 
     def sortedArrayToBST(self, nums):
@@ -97,7 +96,7 @@ class BST():
         else:
             ldepth = self.getDepth(root.left)
             rdepth = self.getDepth(root.right)
-            return abs(ldepth-rdepth)<=1 and self.isBalanced(root.left) and self.isBalanced(root.right)
+            return abs(ldepth-rdepth) <= 1 and self.isBalanced(root.left) and self.isBalanced(root.right)
 
     def isValidBST(self, root, left=None, right=None):
         """ 判断树是否为二叉搜索树：

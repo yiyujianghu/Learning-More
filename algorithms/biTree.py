@@ -60,17 +60,16 @@ class Tree():
 
     def tree2dict(self, node):
         """简单的二叉树转字典的函数。"""
-        if node.left and node.right:
-            dictTree = {}
-            dictTree[node.val] = {"left": self.tree2dict(node.left), "right": self.tree2dict(node.right)}
-        elif node.left:
-            dictTree = {}
-            dictTree[node.val] = {"left": self.tree2dict(node.left)}
-        elif node.right:
-            dictTree = {}
-            dictTree[node.val] = {"right": self.tree2dict(node.right)}
-        else:
+        if not node.left and not node.right:
             dictTree = node.val
+        else:
+            dictTree = {}
+            if node.left and node.right:
+                dictTree[node.val] = {"left": self.tree2dict(node.left), "right": self.tree2dict(node.right)}
+            elif node.left:
+                dictTree[node.val] = {"left": self.tree2dict(node.left)}
+            elif node.right:
+                dictTree[node.val] = {"right": self.tree2dict(node.right)}
         return dictTree
 
     def preOrder(self, node):
