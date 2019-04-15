@@ -100,9 +100,9 @@ class BST():
             return abs(ldepth-rdepth)<=1 and self.isBalanced(root.left) and self.isBalanced(root.right)
 
     def isValidBST(self, root, left=None, right=None):
-        """ 判断一棵树是否为二叉搜索树：
-            思路一：树的中序遍历为升序，思路常规，按照中序遍历依次即可
-            思路二：依次比较左右节点和根节点的大小，本方法想法笨拙但代码犀利"""
+        """ 判断树是否为二叉搜索树：
+            思路1：树的中序遍历为升序，思路常规，按照中序遍历依次即可
+            思路2：依次比较左右节点和根节点的大小，本方法想法笨拙但代码犀利"""
         if not root:
             return True
         elif (left and left.val >= root.val) or (right and right.val <= root.val):
