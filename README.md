@@ -25,3 +25,7 @@
 ![Image text](https://github.com/yiyujianghu/Learning-More/blob/master/data/figure/algorithms/subset.jpg)<br>
 3、8皇后问题<br>
 ![Image text](https://github.com/yiyujianghu/Learning-More/blob/master/data/figure/algorithms/queens.jpg)<br>
+
+* 学习二叉查找树：<br>
+1、二叉查找树的定义与基本构成、增删查找的基本方法；<br>
+2、红黑树（待定）；
