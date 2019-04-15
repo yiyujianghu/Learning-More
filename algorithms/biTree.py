@@ -48,6 +48,16 @@ class Tree():
             rdepth = self.getDepth(node.right)
             return 1+max(ldepth, rdepth)
 
+    def isBalanced(self, root):
+        """判断一棵树是否为平衡二叉树"""
+        if not root:
+            return True
+        else:
+            ldepth = self.getDepth(root.left)
+            rdepth = self.getDepth(root.right)
+            return abs(ldepth-rdepth)<=1 and self.isBalanced(root.left) and self.isBalanced(root.right)
+
+
     def tree2dict(self, node):
         """简单的二叉树转字典的函数。"""
         if node.left and node.right:

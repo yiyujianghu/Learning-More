@@ -81,6 +81,38 @@ class BST():
         else:
             return root
 
+    def getDepth(self, node):
+        """求解树的深度"""
+        if not node:
+            return 0
+        else:
+            ldepth = self.getDepth(node.left)
+            rdepth = self.getDepth(node.right)
+            return 1+max(ldepth, rdepth)
+
+    def isBalanced(self, root):
+        """判断一棵树是否为平衡二叉树"""
+        if not root:
+            return True
+        else:
+            ldepth = self.getDepth(root.left)
+            rdepth = self.getDepth(root.right)
+            return abs(ldepth-rdepth)<=1 and self.isBalanced(root.left) and self.isBalanced(root.right)
+
+    def isValidBST(self, root, left=None, right=None):
+        """ 判断一棵树是否为二叉搜索树：
+            思路一：树的中序遍历为升序，思路常规，按照中序遍历依次即可
+            思路二：依次比较左右节点和根节点的大小，本方法想法笨拙但代码犀利"""
+        if not root:
+            return True
+        elif (left and left.val >= root.val) or (right and right.val <= root.val):
+            return False
+        return self.isValidBST(root.left, left, root) and self.isValidBST(root.right, root, right)
+
+    def delNode(self, root):
+        """删除树中的指定节点"""
+        pass
+
 
     def clearTree(self):
         """清除树的各个节点"""
@@ -97,11 +129,21 @@ def createTree(root, nums):
 
 if __name__ == "__main__":
     tree = BST(treeNode(5))
+    print("*"*50)
+    print("*****按照insert方式插入节点*****")
     createTree(tree.root, [1, 2, 8, 9, 6, 7, 4, 3])
     print("二叉树的结构: ", tree.tree2dict(tree.root))  # 这里可以观察树的内部结构
+    print("这棵树是否为二叉搜索树？ ", tree.isValidBST(tree.root))
+    print("这棵树是否为平衡二叉树？ ", tree.isBalanced(tree.root))
     tree.clearTree()
+    print("*****按照排序方式插入节点*****")
     tree.root = tree.sortedArrayToBST([1, 2, 8, 9, 5, 6, 7, 4, 3])
     print("二叉树的结构: ", tree.tree2dict(tree.root))  # 这里可以观察树的内部结构
+    print("这棵树是否为二叉搜索树？ ", tree.isValidBST(tree.root))
+    print("这棵树是否为平衡二叉树？ ", tree.isBalanced(tree.root))
+    print("*"*50)
+    print("*****查询二叉树中的指定节点*****")
     print("查询某个数字是否在搜索树中：", tree.query(tree.root, 6))
     print("寻找树中最大值：", tree.findMax(tree.root).val)
     print("寻找树中最小值：", tree.findMin(tree.root).val)
+    print("*****删除二叉树中的指定节点*****")
