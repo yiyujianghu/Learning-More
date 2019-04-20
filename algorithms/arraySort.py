@@ -68,9 +68,9 @@ class ArraySort():
             目前没想到太好的办法，采用了双端队列来pop左端数值"""
         sortedArray = []
         N = len(array)
-        if N == 1:
+        if N <= 1:
             return array
-        elif N > 1:
+        else:
             sortedArray1 = self.mergeSort(array[0: N//2])
             sortedArray2 = self.mergeSort(array[N//2: N])
             sortedDeque1 = deque(sortedArray1)
@@ -85,31 +85,22 @@ class ArraySort():
             while sortedDeque2 and not sortedDeque1:
                 sortedArray.append(sortedDeque2.popleft())
             return sortedArray
-        else:
-            return []
 
 
     def quickSort(self, array):
         """ 快速排序：依然采用分治算法的思路，由一个基准值将数组一分为二，然后对左右分别递归二分"""
-        stack1 = []
-        stack2 = []
-        if len(array) == 1:
+        if len(array) <= 1:
             return array
-        elif len(array) > 1:
+        else:
+            stack1 = []
+            stack2 = []
             value = array[0]
             for j in range(1, len(array)):
                 if array[j] < value:
                     stack1.append(array[j])
                 else:
                     stack2.append(array[j])
-            stack = self.quickSort(stack1)
-            stacktemp = self.quickSort(stack2)
-            stack.append(value)
-            stack.extend(stacktemp)
-            return stack
-        else:
-            return []
-
+            return self.quickSort(stack1) + [value] + self.quickSort(stack2)
 
 
     def stackSort(self, array):
