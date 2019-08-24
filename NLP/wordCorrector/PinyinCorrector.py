@@ -44,7 +44,7 @@ class PinyinCorrector():
             pinyin_edit = self.pinyinEdit(one_pinyin, pinyin_set)
             pinyin_edit_list.append(pinyin_edit)
 
-        # 用深度遍历求候选拼音的交叉全集
+        # 用深度遍历求候选拼音的排列组合
         N = len(pinyin_edit_list)
         def DFS(per, depth):
             if depth == N:

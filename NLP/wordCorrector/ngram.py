@@ -9,6 +9,8 @@
 import jieba
 import numpy as np
 import json
+import copy
+from .PinyinCorrector import PinyinCorrector
 
 
 class NGram():
@@ -32,25 +34,41 @@ class NGram():
             return -100
 
 
+
+    def correctERROR(self, error_word, index, N, dictProb):
+        wordList = self.sentenceList[index: index + N]
+        corrector = PinyinCorrector(error_word)
+        corrector.wordCandidate()
+        word_candidate = corrector.word_candidate
+        word_candidate_score = []
+        for word in word_candidate:
+            wordList[N-1] = word
+            probability = self.probSearch(dictProb[wordList[0]], wordList[1:])
+            word_candidate_score.append({"word": word, "score": probability})
+        word_candidate_score.sort(key=lambda x: x["score"], reverse=True)
+        return word_candidate_score[0]["word"]
+
+
     def detectERROR(self, dictProb, N, threshold):
         stopList = ["，", "。", "！", "："]
         self.sentenceList = [word for word in jieba.cut(self.sentence) if word not in stopList]
         print(" ".join(self.sentenceList))
-        errIndex = []
         for i in range(len(self.sentenceList)-N):
+            errorDisplay = copy.deepcopy(self.sentenceList)
             wordList = self.sentenceList[i: i+N]
             if wordList[0] not in dictProb:
-                errIndex.append(i)
-                self.sentenceList[i] = "\033[0;31m{}\033[0m".format(self.sentenceList[i])
+                errorDisplay[i] = "\033[0;31m{}\033[0m".format(self.sentenceList[i])
                 continue
             probability = self.probSearch(dictProb[wordList[0]], wordList[1:])
-            print(self.sentenceList[i+N-1], probability)
             if probability < threshold:
-                errIndex.append(i+N-1)
-                self.sentenceList[i+N-1] = "\033[0;31m{}\033[0m".format(self.sentenceList[i+N-1])
-                print(self.sentenceList[i+N-1], probability)
-        print(" ".join(self.sentenceList))
-        return errIndex
+                wordERROR = self.sentenceList[i + N - 1]
+                errorDisplay[i+N-1] = "\033[0;31m{}\033[0m".format(self.sentenceList[i+N-1])
+                print(" ".join(errorDisplay))
+                corrected_word = self.correctERROR(wordERROR, i, N, dictProb)
+                self.sentenceList[i+N-1] = corrected_word
+                rightDisplay = copy.deepcopy(self.sentenceList)
+                rightDisplay[i+N-1] = "\033[0;36m{}\033[0m".format(self.sentenceList[i+N-1])
+                print(" ".join(rightDisplay))
 
 
     @classmethod
@@ -127,7 +145,7 @@ if __name__ == "__main__":
     NGram.train(data, 3)
 
     # 错误检测
-    sentence = "为了祖国，为了自由，向我开炮！向我开炮！"
+    sentence = "为了祖国，为了审理，向我来到！向我开炮！"
     example = NGram(sentence)
     dictProbability = example.loadModel("data/ngram.model")
     example.detectERROR(dictProbability, 3, -50)
