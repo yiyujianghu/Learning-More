@@ -10,7 +10,6 @@ class NGram():
 
 
     def probSearch(self, subDict, wordList):
-        print("subDict, wordList, subDict['prob']", subDict, wordList, subDict["prob"])
         try:
             if len(wordList) == 0:
                 return subDict["prob"]
@@ -113,4 +112,4 @@ if __name__ == "__main__":
     dictProbability = NGram.train(data, 3)
     sentence = "为了祖国，为了自由，向我开炮！向我开炮！"
     example = NGram(sentence)
-    example.detectERROR(dictProbability, 3, -30)
+    example.detectERROR(dictProbability, 3, -50)
