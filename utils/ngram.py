@@ -3,38 +3,42 @@
 import jieba
 import numpy as np
 
+jieba.load_userdict("../../data/dict/userdict.txt")
+
 class NGram():
     def __init__(self, sentence):
         self.sentence = sentence
 
+
     def probSearch(self, subDict, wordList):
+        print("subDict, wordList, subDict['prob']", subDict, wordList, subDict["prob"])
         try:
-            probability = self.probSearch(subDict[wordList[0]], wordList[1:])
-            if len(wordList) > 1:
-                return probability
+            if len(wordList) == 0:
+                return subDict["prob"]
             else:
-                return subDict[wordList[0]]["prob"]
+                return self.probSearch(subDict[wordList[0]], wordList[1:])
         except:
             return -100
 
 
-    def detectERROR(self, dictProb, N):
+    def detectERROR(self, dictProb, N, threshold):
         stopList = ["，", "。", "！", "："]
-        sentenceList = [word for word in jieba.cut(self.sentence) if word not in stopList]
-        print(sentenceList)
-        print("".join(sentenceList))
+        self.sentenceList = [word for word in jieba.cut(self.sentence) if word not in stopList]
+        print(" ".join(self.sentenceList))
         errIndex = []
-        for i in range(len(sentenceList)-N):
-            wordList = sentenceList[i: i+N]
+        for i in range(len(self.sentenceList)-N):
+            wordList = self.sentenceList[i: i+N]
             if wordList[0] not in dictProb:
                 errIndex.append(i)
-                sentenceList[i] = "\033[0;31m{}\033[0m".format(sentenceList[i])
+                self.sentenceList[i] = "\033[0;31m{}\033[0m".format(self.sentenceList[i])
                 continue
             probability = self.probSearch(dictProb[wordList[0]], wordList[1:])
-            if probability < -20:
-                errIndex.append(i+3)
-                sentenceList[i+3] = "\033[0;31m{}\033[0m".format(sentenceList[i+3])
-        print("".join(sentenceList))
+            print(self.sentenceList[i+N-1], probability)
+            if probability < threshold:
+                errIndex.append(i+N-1)
+                self.sentenceList[i+N-1] = "\033[0;31m{}\033[0m".format(self.sentenceList[i+N-1])
+                print(self.sentenceList[i+N-1], probability)
+        print(" ".join(self.sentenceList))
         return errIndex
 
 
@@ -52,7 +56,7 @@ class NGram():
 
     @classmethod
     def loadStopList(cls):
-        with open("../../data/dict/stopdict.txt", "r", encoding="utf-8") as f:
+        with open("/data/dict/stopdict.txt", "r", encoding="utf-8") as f:
             stopList = []
             for w in f.readlines():
                 stopList.append(w.replace("\n", ""))
@@ -83,12 +87,12 @@ class NGram():
 
 
     @classmethod
-    def caculateProb(cls, dictStatic):
+    def caculateProb(cls, dictStatic, probBF):
         dictProb = {}
         summary = dictStatic.pop("count") if dictStatic["count"] > 0 else 1
         for k in dictStatic.keys():
-            dictProb[k] = {"prob": np.log(dictStatic[k]["count"] / summary)}
-            subDict = cls.caculateProb(dictStatic[k])
+            dictProb[k] = {"prob": np.log(dictStatic[k]["count"] / summary) + probBF}
+            subDict = cls.caculateProb(dictStatic[k], dictProb[k]["prob"])
             if len(subDict) > 0:
                 dictProb[k].update(subDict)
         return dictProb
@@ -100,10 +104,9 @@ class NGram():
         dictStatic = {}
         for line in data:
             cls.addLine(dictStatic, line, N)
-        print(dictStatic)
         dictStatic["count"] = cls.calOneCount(dictStatic)
-        dictProbability = cls.caculateProb(dictStatic)
-        dictProbability["prob"] = 0
+        dictProbability = {"prob": 0}
+        dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
         return dictProbability
 
 
@@ -111,9 +114,8 @@ if __name__ == "__main__":
     data = ["为了祖国，为了胜利，向我开炮！向我开炮！",
             "记者：你怎么会说出那番话，我只是觉得",
             "我只是觉得，对准我自己打"]
-    data = [" ".join(jieba.lcut(w)) for w in data]
+    data = [" ".join(jieba.lcut(e)) for e in data]
     dictProbability = NGram.train(data, 3)
-    print(dictProbability)
-    sentence = "为了祖国火炬，向我开炮，向我开炮，向我开炮的大战略，我只是觉得，对准我自己打"
+    sentence = "为了祖国，为了自由，向我开炮！向我开炮！"
     example = NGram(sentence)
-    example.detectERROR(dictProbability, 3)
+    example.detectERROR(dictProbability, 3, -30)
