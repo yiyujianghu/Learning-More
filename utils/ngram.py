@@ -3,7 +3,6 @@
 import jieba
 import numpy as np
 
-jieba.load_userdict("../../data/dict/userdict.txt")
 
 class NGram():
     def __init__(self, sentence):
@@ -56,11 +55,7 @@ class NGram():
 
     @classmethod
     def loadStopList(cls):
-        with open("/data/dict/stopdict.txt", "r", encoding="utf-8") as f:
-            stopList = []
-            for w in f.readlines():
-                stopList.append(w.replace("\n", ""))
-        return stopList
+        pass
 
 
     @classmethod
