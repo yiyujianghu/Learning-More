@@ -6,11 +6,21 @@
 @time: 2019/8/22 21:00
 """
 
+'''
+待改进的几个地方：
+1、由于是ngram向后检测，对于开头的词汇无法改进，考虑是否用反向ngram，当正向修改失败时方向修改错误；也可考虑循环ngram，即也考虑两边对中间的影响；
+2、对于分词的依赖：未登录词无法分出，譬如将双字分开成两个单字，这样拼音修正只更改其中一个字，就会继续错下去；
+   论文中对此的修正办法是采用5gram的字级别扫描； 
+3、拼音改正之外的其他方法，譬如LSTM或其他深度学习的方法，原理也是计算局部概率的异常点，然后提供候选词，然后重新计算更正；还可以加入一些规则辅助之类的；
+4、容错处理机制：对于一些未见过的词，根据上下文判断是特有名词之类的，然后不错错误处理，比如看到姓氏猜测此处是姓名；
+5、对于汉字的拼写错误，偏旁错误等无法用拼音纠正完全覆盖到；
+'''
+
 import jieba
 import numpy as np
 import json
 import copy
-from PinyinCorrector import PinyinCorrector
+from .PinyinCorrector import PinyinCorrector
 
 
 class NGram():
