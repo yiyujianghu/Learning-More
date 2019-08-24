@@ -10,7 +10,7 @@ import jieba
 import numpy as np
 import json
 import copy
-from .PinyinCorrector import PinyinCorrector
+from PinyinCorrector import PinyinCorrector
 
 
 class NGram():
@@ -34,7 +34,6 @@ class NGram():
             return -100
 
 
-
     def correctERROR(self, error_word, index, N, dictProb):
         wordList = self.sentenceList[index: index + N]
         corrector = PinyinCorrector(error_word)
@@ -52,7 +51,7 @@ class NGram():
     def detectERROR(self, dictProb, N, threshold):
         stopList = ["，", "。", "！", "："]
         self.sentenceList = [word for word in jieba.cut(self.sentence) if word not in stopList]
-        print(" ".join(self.sentenceList))
+        print("原始语句：", " ".join(self.sentenceList))
         for i in range(len(self.sentenceList)-N):
             errorDisplay = copy.deepcopy(self.sentenceList)
             wordList = self.sentenceList[i: i+N]
@@ -63,12 +62,12 @@ class NGram():
             if probability < threshold:
                 wordERROR = self.sentenceList[i + N - 1]
                 errorDisplay[i+N-1] = "\033[0;31m{}\033[0m".format(self.sentenceList[i+N-1])
-                print(" ".join(errorDisplay))
+                print("\033[0;31m{}\033[0m".format("发现错误："), " ".join(errorDisplay))
                 corrected_word = self.correctERROR(wordERROR, i, N, dictProb)
                 self.sentenceList[i+N-1] = corrected_word
                 rightDisplay = copy.deepcopy(self.sentenceList)
                 rightDisplay[i+N-1] = "\033[0;36m{}\033[0m".format(self.sentenceList[i+N-1])
-                print(" ".join(rightDisplay))
+                print("\033[0;36m{}\033[0m".format("拼音改正："), " ".join(rightDisplay))
 
 
     @classmethod
