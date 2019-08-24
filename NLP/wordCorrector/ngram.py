@@ -1,12 +1,25 @@
-# coding : utf-8
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+@author: Dong Jun
+@file: ngram.py
+@time: 2019/8/22 21:00
+"""
 
 import jieba
 import numpy as np
+import json
 
 
 class NGram():
     def __init__(self, sentence):
         self.sentence = sentence
+
+
+    def loadModel(self, ngram_path):
+        with open(ngram_path, "r", encoding="utf-8") as f:
+            ngram_dict = json.load(f)
+        return ngram_dict
 
 
     def probSearch(self, subDict, wordList):
@@ -101,15 +114,20 @@ class NGram():
         dictStatic["count"] = cls.calOneCount(dictStatic)
         dictProbability = {"prob": 0}
         dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
-        return dictProbability
+        with open("data/ngram.model", "w", encoding="utf-8") as f:
+            f.write(json.dumps(dictProbability, ensure_ascii=False))
 
 
 if __name__ == "__main__":
+    # 模型训练
     data = ["为了祖国，为了胜利，向我开炮！向我开炮！",
             "记者：你怎么会说出那番话，我只是觉得",
             "我只是觉得，对准我自己打"]
     data = [" ".join(jieba.lcut(e)) for e in data]
-    dictProbability = NGram.train(data, 3)
+    NGram.train(data, 3)
+
+    # 错误检测
     sentence = "为了祖国，为了自由，向我开炮！向我开炮！"
     example = NGram(sentence)
+    dictProbability = example.loadModel("data/ngram.model")
     example.detectERROR(dictProbability, 3, -50)

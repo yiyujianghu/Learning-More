@@ -1,4 +1,10 @@
-# coding : utf-8
+#!/usr/bin/env python
+# encoding: utf-8
+"""
+@author: Dong Jun
+@file: pinyinCorrector.py
+@time: 2019/8/24 10:00
+"""
 
 from pypinyin import lazy_pinyin
 import json
