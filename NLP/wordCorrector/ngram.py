@@ -20,18 +20,41 @@ import jieba
 import numpy as np
 import json
 import copy
-from .PinyinCorrector import PinyinCorrector
+from PinyinCorrector import PinyinCorrector
 
 
 class NGram():
     def __init__(self, sentence):
         self.sentence = sentence
+        self.base_ngram_path = "data/"
+        self.stopword_path = "data/stopword.txt"
+        self.stopList = self.loadStopList(self.stopword_path)
+        self.stopLocation = []
+        self.thresholdList = []
 
 
+    @classmethod
     def loadModel(self, ngram_path):
         with open(ngram_path, "r", encoding="utf-8") as f:
             ngram_dict = json.load(f)
         return ngram_dict
+
+
+    def sentencePreprocessed(self):
+        self.sentenceList = []
+        sentenceCutList = jieba.lcut(self.sentence)
+        for i in range(len(sentenceCutList)):
+            if sentenceCutList[i] not in self.stopList:
+                self.sentenceList.append(sentenceCutList[i])
+            else:
+                self.stopLocation.append({"word": sentenceCutList[i], "index": i})
+
+
+    def sentenceRestore(self, sentence_update):
+        sentence_restore = copy.deepcopy(sentence_update)
+        for item in self.stopLocation:
+            sentence_restore.insert(item["index"], item["word"])
+        return "".join(sentence_restore)
 
 
     def probSearch(self, subDict, wordList):
@@ -44,57 +67,71 @@ class NGram():
             return -100
 
 
-    def correctERROR(self, error_word, index, N, dictProb):
-        wordList = self.sentenceList[index: index + N]
+    def correctERROR(self, wordList, error_word, dictProb):
         corrector = PinyinCorrector(error_word)
         corrector.wordCandidate()
         word_candidate = corrector.word_candidate
         word_candidate_score = []
         for word in word_candidate:
-            wordList[N-1] = word
+            wordList[-1] = word
             probability = self.probSearch(dictProb[wordList[0]], wordList[1:])
             word_candidate_score.append({"word": word, "score": probability})
         word_candidate_score.sort(key=lambda x: x["score"], reverse=True)
-        return word_candidate_score[0]["word"]
+        return word_candidate_score[0]
 
 
-    def detectERROR(self, dictProb, N, threshold):
-        stopList = ["，", "。", "！", "："]
-        self.sentenceList = [word for word in jieba.cut(self.sentence) if word not in stopList]
-        print("原始语句：", " ".join(self.sentenceList))
-        for i in range(len(self.sentenceList)-N):
+    def detectERROR(self, N, threshold, direction):
+        self.sentencePreprocessed()
+        sentenceList4detect = self.sentenceList if direction=="front" else list(reversed(self.sentenceList))
+        length = len(self.sentenceList)
+        dictProb = self.loadModel(self.base_ngram_path+"{}_{}_gram.model".format(direction, N))
+        for i in range(len(sentenceList4detect) - N):
+            index4update = (i+N)-1 if direction=="front" else length-(i+N)
             errorDisplay = copy.deepcopy(self.sentenceList)
-            wordList = self.sentenceList[i: i+N]
+            wordList = sentenceList4detect[i: i + N]
             if wordList[0] not in dictProb:
-                errorDisplay[i] = "\033[0;31m{}\033[0m".format(self.sentenceList[i])
+                # errorDisplay[i] = "\033[0;31m{}\033[0m".format(self.sentenceList[i])
                 continue
             probability = self.probSearch(dictProb[wordList[0]], wordList[1:])
             if probability < threshold:
-                wordERROR = self.sentenceList[i + N - 1]
-                errorDisplay[i+N-1] = "\033[0;31m{}\033[0m".format(self.sentenceList[i+N-1])
-                print("\033[0;31m{}\033[0m".format("发现错误："), " ".join(errorDisplay))
-                corrected_word = self.correctERROR(wordERROR, i, N, dictProb)
-                self.sentenceList[i+N-1] = corrected_word
+                wordERROR = self.sentenceList[index4update]
+                errorDisplay[index4update] = "\033[0;31m{}\033[0m".format(self.sentenceList[index4update])
+                print("\033[0;31m{}\033[0m".format("发现错误："), self.sentenceRestore(errorDisplay))
+                corrected_word_item = self.correctERROR(wordList, wordERROR, dictProb)
+                if corrected_word_item["score"] > threshold:
+                    sentenceList4detect[i+N-1] = corrected_word_item["word"]
+                    self.sentenceList[index4update] = corrected_word_item["word"]
+                else:
+                    continue
                 rightDisplay = copy.deepcopy(self.sentenceList)
-                rightDisplay[i+N-1] = "\033[0;36m{}\033[0m".format(self.sentenceList[i+N-1])
-                print("\033[0;36m{}\033[0m".format("拼音改正："), " ".join(rightDisplay))
+                rightDisplay[index4update] = "\033[0;36m{}\033[0m".format(self.sentenceList[index4update])
+                print("\033[0;36m{}\033[0m".format("拼音改正："), self.sentenceRestore(rightDisplay))
+        self.sentence = self.sentenceRestore(self.sentenceList)
+        self.sentenceList.clear()
+        self.stopLocation.clear()
+
 
 
     @classmethod
-    def rmStopword(cls, data):
-        stopList = ["，", "。", "！", "："]
-        for i in range(len(data)):
+    def rmStopword(cls, data_input):
+        data_output = []
+        stopList = cls.loadStopList("data/stopword.txt")
+        for i in range(len(data_input)):
             line = []
-            for w in data[i].split(" "):
+            for w in data_input[i].split(" "):
                 if w not in stopList:
                     line.append(w)
-            data[i] = line
-        return data
+            data_output.append(line)
+        return data_output
 
 
     @classmethod
-    def loadStopList(cls):
-        pass
+    def loadStopList(cls, stopword_path):
+        stopList = []
+        with open(stopword_path, "r", encoding="utf-8") as f:
+            for line in f.readlines():
+                stopList.append(line.replace("\n", ""))
+        return stopList
 
 
     @classmethod
@@ -133,28 +170,32 @@ class NGram():
 
 
     @classmethod
-    def train(cls, data, N):
-        data = cls.rmStopword(data)
+    def train(cls, data_input, N, direction):
+        data = cls.rmStopword(data_input)
+        if direction == "back":
+            data = [line[::-1] for line in data]
         dictStatic = {}
         for line in data:
             cls.addLine(dictStatic, line, N)
         dictStatic["count"] = cls.calOneCount(dictStatic)
         dictProbability = {"prob": 0}
         dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
-        with open("data/ngram.model", "w", encoding="utf-8") as f:
+        with open("data/{}_{}_gram.model".format(direction, N), "w", encoding="utf-8") as f:
             f.write(json.dumps(dictProbability, ensure_ascii=False))
 
 
 if __name__ == "__main__":
     # 模型训练
-    data = ["为了祖国，为了胜利，向我开炮！向我开炮！",
+    context = ["为了祖国，为了胜利，向我开炮！向我开炮！",
             "记者：你怎么会说出那番话，我只是觉得",
             "我只是觉得，对准我自己打"]
-    data = [" ".join(jieba.lcut(e)) for e in data]
-    NGram.train(data, 3)
+    context = [" ".join(jieba.lcut(e)) for e in context]
+    NGram.train(context, 3, "front")
+    NGram.train(context, 3, "back")
 
     # 错误检测
-    sentence = "为了祖国，为了审理，向我来到！向我开炮！"
+    sentence = "为了祖国，为了审理，向我凯跑！向我开炮！"
+    print("原始语句：", sentence)
     example = NGram(sentence)
-    dictProbability = example.loadModel("data/ngram.model")
-    example.detectERROR(dictProbability, 3, -50)
+    example.detectERROR(3, -50, "back")
+    example.detectERROR(3, -50, "front")

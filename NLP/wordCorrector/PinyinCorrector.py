@@ -15,9 +15,11 @@ class PinyinCorrector():
         self.word_candidate = []
         self.pinyin_dict_path = "data/pinyin2word.model"
         self.pinyin_set_path = "data/pinyin_set.model"
+        self.pinyin_dict, self.pinyin_set = self.loadModel(self.pinyin_dict_path, self.pinyin_set_path)
 
 
-    def loadModel(self, pinyin_dict_path, pinyin_set_path):
+    @classmethod
+    def loadModel(cls, pinyin_dict_path, pinyin_set_path):
         with open(pinyin_dict_path, "r", encoding="utf-8") as f:
             pinyin_dict = json.load(f)
         with open(pinyin_set_path, "r", encoding="utf-8") as f:
@@ -25,7 +27,7 @@ class PinyinCorrector():
         return pinyin_dict, pinyin_set
 
 
-    def pinyinEdit(self, pinyin, pinyin_set):
+    def pinyinEdit(self, pinyin):
         '''返回编辑距离为1以内的增删改操作的拼音集合，并且用交集的方法去掉明显不合理的拼音'''
         n = len(pinyin)
         charList = [chr(i) for i in range(97, 123)]
@@ -33,15 +35,15 @@ class PinyinCorrector():
                           [pinyin[0:i] + pinyin[i + 1] + pinyin[i] + pinyin[i + 2:] for i in range(n - 1)] +   # transposition
                           [pinyin[0:i] + c + pinyin[i + 1:] for i in range(n) for c in charList] +             # alteration
                           [pinyin[0:i] + c + pinyin[i:] for i in range(n + 1) for c in charList])              # insertion
-        return pinyin_set & pinyin_edit
+        return self.pinyin_set & pinyin_edit
 
 
-    def pinyinCandidate(self, word_pinyin, pinyin_set):
+    def pinyinCandidate(self, word_pinyin):
         pinyin_candidate = [','.join(word_pinyin)]
         # 将每一个拼音编辑距离为1以内的拼音都记录下来
         pinyin_edit_list = []
         for one_pinyin in word_pinyin:
-            pinyin_edit = self.pinyinEdit(one_pinyin, pinyin_set)
+            pinyin_edit = self.pinyinEdit(one_pinyin)
             pinyin_edit_list.append(pinyin_edit)
 
         # 用深度遍历求候选拼音的排列组合
@@ -56,18 +58,18 @@ class PinyinCorrector():
         return pinyin_candidate
 
 
-    def wordCandidateSearch(self, pinyin_candidate, pinyin_dict):
+    def wordCandidateSearch(self, pinyin_candidate):
         for pinyin in pinyin_candidate:
-            wordsDict = pinyin_dict.get(pinyin, {})
+            wordsDict = self.pinyin_dict.get(pinyin, {})
             self.word_candidate.extend(wordsDict)
 
 
     def wordCandidate(self):
         '''这里用候选拼音查表生成候选词语'''
-        pinyin_dict, pinyin_set = self.loadModel(self.pinyin_dict_path, self.pinyin_set_path)
+
         word_pinyin = lazy_pinyin(self.word)
-        pinyin_candidate = self.pinyinCandidate(word_pinyin, pinyin_set)
-        self.wordCandidateSearch(pinyin_candidate, pinyin_dict)
+        pinyin_candidate = self.pinyinCandidate(word_pinyin)
+        self.wordCandidateSearch(pinyin_candidate)
 
 
     @classmethod
