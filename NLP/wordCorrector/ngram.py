@@ -21,10 +21,10 @@ import jieba
 import numpy as np
 import json
 import copy
+from datetime import datetime
 from PinyinCorrector import PinyinCorrector
 from MistakeCorrector import MistakeCorrector
 
-jieba.load_userdict("data/dict.txt")
 
 class NGram():
     def __init__(self, sentence):
@@ -35,6 +35,10 @@ class NGram():
         self.stopLocation = []                      # 将停用词的位置信息记录下来，用于最后还原原句
         self.thresholdList = []                     # 对不同位置的阈值，可采用统计方法获得，然后写入list中保存
         self.displayList = ["原始语句："+sentence]   # 用于打印修正过程
+        self.userdict_load = False
+        self.userdict_path = ""
+        self.before_time = datetime.now()
+        self.after_time = datetime.now()
 
 
     @classmethod
@@ -42,6 +46,20 @@ class NGram():
         with open(ngram_path, "r", encoding="utf-8") as f:
             ngram_dict = json.load(f)
         return ngram_dict
+
+
+    def delta_time_calculate(self):
+        self.after_time = datetime.now()
+        delta_time = self.after_time - self.before_time
+        self.before_time = datetime.now()
+        return delta_time
+
+
+    def load_userdict(self, file_path, tokenizer_only=True):
+        jieba.load_userdict(file_path)
+        if tokenizer_only == False:
+            self.userdict_load = True
+            self.userdict_path = file_path
 
 
     def sentencePreprocessed(self):
@@ -84,8 +102,11 @@ class NGram():
 
         # 加入字形等错别字纠正的候选词
         mistake_corrector = MistakeCorrector(error_word)
+        mistake_corrector.userdict_load = self.userdict_load
+        mistake_corrector.userdict_path = self.userdict_path
         mistake_corrector.wordCandidate()
         word_candidate.extend(mistake_corrector.word_candidate)
+
         word_candidate_score = []
         for word in word_candidate:
             wordList[-1] = word
@@ -107,7 +128,7 @@ class NGram():
         length = len(self.sentenceList)
         dictProb = self.loadModel(self.base_ngram_path+"{}_{}_gram.model".format(direction, N))
         for i in range(len(sentenceList4detect) - N):
-            index4update = (i+N)-1 if direction=="front" else length-(i+N)
+            index4update = (i+N)-1 if direction=="front" else length-(i+N)          # 考虑到正方两种顺序错误词的标号不同
             errorDisplay = copy.deepcopy(self.sentenceList)
             wordList = sentenceList4detect[i: i + N]
             if wordList[0] not in dictProb:
@@ -225,5 +246,6 @@ if __name__ == "__main__":
     # 错误检测
     sentence = "为乐祖国，为了审理，向我凯跑！向我开炮！"
     example = NGram(sentence)
+    example.load_userdict("data/dict.txt")
     example.detectERROR(3, -50, "bi_direction")
     example.display()
