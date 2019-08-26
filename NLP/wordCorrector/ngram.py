@@ -31,6 +31,7 @@ class NGram():
         self.stopList = self.loadStopList(self.stopword_path)
         self.stopLocation = []
         self.thresholdList = []
+        self.displayList = ["原始语句："+sentence]
 
 
     @classmethod
@@ -80,9 +81,15 @@ class NGram():
         return word_candidate_score[0]
 
 
-    def detectERROR(self, N, threshold, direction):
+    def detectERROR(self, N=3, threshold=-50, direction="front"):
+        if direction=="bi_direction":
+            self.detectERROR(N, threshold, "front")
+            self.detectERROR(N, threshold, "back")
+            return None
         self.sentencePreprocessed()
+        directionInformation = "*** 正向检测 >>>" if direction=="front" else "*** 反向检测 >>>"
         sentenceList4detect = self.sentenceList if direction=="front" else list(reversed(self.sentenceList))
+        self.displayList.append(directionInformation)
         length = len(self.sentenceList)
         dictProb = self.loadModel(self.base_ngram_path+"{}_{}_gram.model".format(direction, N))
         for i in range(len(sentenceList4detect) - N):
@@ -96,7 +103,7 @@ class NGram():
             if probability < threshold:
                 wordERROR = self.sentenceList[index4update]
                 errorDisplay[index4update] = "\033[0;31m{}\033[0m".format(self.sentenceList[index4update])
-                print("\033[0;31m{}\033[0m".format("发现错误："), self.sentenceRestore(errorDisplay))
+                self.displayList.append("\033[0;31m{}\033[0m".format("发现错误：")+self.sentenceRestore(errorDisplay))
                 corrected_word_item = self.correctERROR(wordList, wordERROR, dictProb)
                 if corrected_word_item["score"] > threshold:
                     sentenceList4detect[i+N-1] = corrected_word_item["word"]
@@ -105,11 +112,16 @@ class NGram():
                     continue
                 rightDisplay = copy.deepcopy(self.sentenceList)
                 rightDisplay[index4update] = "\033[0;36m{}\033[0m".format(self.sentenceList[index4update])
-                print("\033[0;36m{}\033[0m".format("拼音改正："), self.sentenceRestore(rightDisplay))
+                self.displayList.append("\033[0;36m{}\033[0m".format("拼音改正：")+self.sentenceRestore(rightDisplay))
         self.sentence = self.sentenceRestore(self.sentenceList)
         self.sentenceList.clear()
         self.stopLocation.clear()
 
+
+    def display(self):
+        for line in self.displayList:
+            print(line)
+        print(">>> 检测完毕 ***")
 
 
     @classmethod
@@ -195,7 +207,6 @@ if __name__ == "__main__":
 
     # 错误检测
     sentence = "为了祖国，为了审理，向我凯跑！向我开炮！"
-    print("原始语句：", sentence)
     example = NGram(sentence)
-    example.detectERROR(3, -50, "back")
-    example.detectERROR(3, -50, "front")
+    example.detectERROR(3, -50, "bi_direction")
+    example.display()
