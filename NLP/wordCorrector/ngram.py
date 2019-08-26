@@ -13,7 +13,8 @@
    论文中对此的修正办法是采用5gram的字级别扫描； 
 3、拼音改正之外的其他方法，譬如LSTM或其他深度学习的方法，原理也是计算局部概率的异常点，然后提供候选词，然后重新计算更正；还可以加入一些规则辅助之类的；
 4、容错处理机制：对于一些未见过的词，根据上下文判断是特有名词之类的，然后不错错误处理，比如看到姓氏猜测此处是姓名；
-5、对于汉字的拼写错误，偏旁错误等无法用拼音纠正完全覆盖到；
+5、----->已加入字形修正的方法，并增加trie树匹配字形修正中正确的字；
+        改进：扩充trie树，订正错别字字典；
 '''
 
 import jieba
@@ -21,7 +22,9 @@ import numpy as np
 import json
 import copy
 from PinyinCorrector import PinyinCorrector
+from MistakeCorrector import MistakeCorrector
 
+jieba.load_userdict("data/dict.txt")
 
 class NGram():
     def __init__(self, sentence):
@@ -29,9 +32,9 @@ class NGram():
         self.base_ngram_path = "data/"
         self.stopword_path = "data/stopword.txt"
         self.stopList = self.loadStopList(self.stopword_path)
-        self.stopLocation = []
-        self.thresholdList = []
-        self.displayList = ["原始语句："+sentence]
+        self.stopLocation = []                      # 将停用词的位置信息记录下来，用于最后还原原句
+        self.thresholdList = []                     # 对不同位置的阈值，可采用统计方法获得，然后写入list中保存
+        self.displayList = ["原始语句："+sentence]   # 用于打印修正过程
 
 
     @classmethod
@@ -49,10 +52,14 @@ class NGram():
                 self.sentenceList.append(sentenceCutList[i])
             else:
                 self.stopLocation.append({"word": sentenceCutList[i], "index": i})
+        self.sentenceList.insert(0, "<HEAD>")
+        self.sentenceList.append("<END>")
 
 
     def sentenceRestore(self, sentence_update):
         sentence_restore = copy.deepcopy(sentence_update)
+        sentence_restore.pop()
+        sentence_restore.pop(0)
         for item in self.stopLocation:
             sentence_restore.insert(item["index"], item["word"])
         return "".join(sentence_restore)
@@ -69,9 +76,16 @@ class NGram():
 
 
     def correctERROR(self, wordList, error_word, dictProb):
-        corrector = PinyinCorrector(error_word)
-        corrector.wordCandidate()
-        word_candidate = corrector.word_candidate
+        word_candidate = []
+        # 加入拼音纠正的候选词
+        pinyin_corrector = PinyinCorrector(error_word)
+        pinyin_corrector.wordCandidate()
+        word_candidate.extend(pinyin_corrector.word_candidate)
+
+        # 加入字形等错别字纠正的候选词
+        mistake_corrector = MistakeCorrector(error_word)
+        mistake_corrector.wordCandidate()
+        word_candidate.extend(mistake_corrector.word_candidate)
         word_candidate_score = []
         for word in word_candidate:
             wordList[-1] = word
@@ -184,8 +198,11 @@ class NGram():
     @classmethod
     def train(cls, data_input, N, direction):
         data = cls.rmStopword(data_input)
-        if direction == "back":
-            data = [line[::-1] for line in data]
+        for i in range(len(data)):
+            data[i].insert(0, "<HEAD>")
+            data[i].append("<END>")
+            if direction == "back":
+                data[i] = data[i][::-1]
         dictStatic = {}
         for line in data:
             cls.addLine(dictStatic, line, N)
@@ -206,7 +223,7 @@ if __name__ == "__main__":
     NGram.train(context, 3, "back")
 
     # 错误检测
-    sentence = "为了祖国，为了审理，向我凯跑！向我开炮！"
+    sentence = "为乐祖国，为了审理，向我凯跑！向我开炮！"
     example = NGram(sentence)
     example.detectERROR(3, -50, "bi_direction")
     example.display()

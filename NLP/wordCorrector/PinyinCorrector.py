@@ -52,8 +52,8 @@ class PinyinCorrector():
             if depth == N:
                 pinyin_candidate.append(per[1:])
             else:
-                for i in pinyin_edit_list[depth]:
-                    DFS(per + "," + i, depth + 1)
+                for w in pinyin_edit_list[depth]:
+                    DFS(per + "," + w, depth + 1)
         DFS("", 0)
         return pinyin_candidate
 
@@ -108,6 +108,6 @@ class PinyinCorrector():
 
 if __name__ == "__main__":
     # PinyinCorrector.build_model()
-    example = PinyinCorrector("电话")
+    example = PinyinCorrector("白天")
     example.wordCandidate()
     print(example.word_candidate)
