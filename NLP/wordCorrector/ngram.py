@@ -22,7 +22,9 @@ import jieba
 import numpy as np
 import json
 import copy
+import os, sys, time, gc
 from datetime import datetime
+from memory_profiler import profile
 from PinyinCorrector import PinyinCorrector
 from MistakeCorrector import MistakeCorrector
 
@@ -37,7 +39,7 @@ class NGram():
         self.thresholdList = []                     # 对不同位置的阈值，可采用统计方法获得，然后写入list中保存
         self.displayList = ["原始语句："+sentence]   # 用于打印修正过程
         self.userdict_load = False
-        self.userdict_path = ""
+        self.userdict_path = ""                     # 用于后边向Trie树中添加字典的标识及路径
         self.before_time = datetime.now()
         self.after_time = datetime.now()
 
@@ -127,7 +129,7 @@ class NGram():
         sentenceList4detect = self.sentenceList if direction=="front" else list(reversed(self.sentenceList))
         self.displayList.append(directionInformation)
         length = len(self.sentenceList)
-        dictProb = self.loadModel(self.base_ngram_path+"{}_{}_gram.model".format(direction, N))
+        dictProb = self.loadModel(self.base_ngram_path+"{}_{}gram.model".format(direction, N))
         for i in range(len(sentenceList4detect) - N):
             index4update = (i+N)-1 if direction=="front" else length-(i+N)          # 考虑到正方两种顺序错误词的标号不同
             errorDisplay = copy.deepcopy(self.sentenceList)
@@ -163,13 +165,12 @@ class NGram():
     @classmethod
     def rmStopword(cls, data_input):
         data_output = []
-        stopList = cls.loadStopList("data/stopword.txt")
         for i in range(len(data_input)):
-            line = []
+            line_list = []
             for w in data_input[i].split(" "):
-                if w not in stopList:
-                    line.append(w)
-            data_output.append(line)
+                if w != " ":
+                    line_list.append(w)
+            data_output.append(line_list)
         return data_output
 
 
@@ -183,9 +184,9 @@ class NGram():
 
 
     @classmethod
-    def addLine(cls, currNode, wordList, N):
-        for i in range(len(wordList)):
-            cls.addNode(currNode, wordList[i:], N)
+    def addLine(cls, currNode, wordList_line, N):
+        for i in range(len(wordList_line)):
+            cls.addNode(currNode, wordList_line[i:], N)
 
 
     @classmethod
@@ -231,34 +232,49 @@ class NGram():
         dictStatic["count"] = cls.calOneCount(dictStatic)
         dictProbability = {"prob": 0}
         dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
-        with open("data/{}_{}_gram.model".format(direction, N), "w", encoding="utf-8") as f:
+        with open("data/{}_{}gram.model".format(direction, N), "w", encoding="utf-8") as f:
             f.write(json.dumps(dictProbability, ensure_ascii=False))
+        return dictProbability
 
 
     @classmethod
-    def train_from_file(cls, file_path, N, direction, need_cut=True):
+    @profile
+    def train_from_file(cls, file_path, N, direction="front", need_cut=True):
         dictStatic = {}
-        stopList = cls.loadStopList("data/stopword.txt")
-        with open(file_path, "r", encoding="utf-8") as file:
-            for line in file:
-                if len(line) <= 1:
-                    continue
-                else:
-                    if need_cut == True:
-                        line_data = [w for w in jieba.cut(line.replace("\n", "")) if w not in stopList]
+        # stopList = cls.loadStopList("data/stopword.txt")
+        line_count = 0
+        file_list = []
+        if os.path.isfile(file_path):           # 如果是单个文件则当作list处理
+            file_list.append(file_path)
+        elif os.path.isdir(file_path):          # 如果单个文件太大，内存不够，则拆分成多个文件放在文件夹中，依次写入数据
+            for fname in os.listdir(file_path):
+                file_list.append(file_path+"/"+fname)
+        file_num = len(file_list)
+        for i in range(file_num):
+            print("file_name：{}，已完成转换行数：{}万，已完成转换进度：{}%".format(file_list[i], line_count//10000, (100*i)//file_num))
+            print("查看dictStatic内存占用：{}".format(sys.getsizeof(dictStatic)))
+            with open(file_list[i], "r", encoding="utf-8") as file:
+                for line in file:
+                    if len(line) <= 1:
+                        continue
                     else:
-                        line_data = cls.rmStopword([line.replace("\n", "")])[0]
-                    line_data.insert(0, "<HEAD>")
-                    line_data.append("<END>")
-                    if direction == "back":
-                        line_data = line_data[::-1]
-                    cls.addLine(dictStatic, line_data, N)
+                        line_count += 1
+                        if need_cut == True:
+                            line_data = [w for w in jieba.cut(line.replace("\n", "")) if w != " "]
+                        else:
+                            line_data = cls.rmStopword([line.replace("\n", "")])[0]
+                        line_data.insert(0, "<HEAD>")
+                        line_data.append("<END>")
+                        if direction == "back":
+                            line_data = line_data[::-1]
+                        cls.addLine(dictStatic, line_data, N)
         dictStatic["count"] = cls.calOneCount(dictStatic)
         dictProbability = {"prob": 0}
         dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
-        with open("data/{}_{}_gram.model".format(direction, N), "w", encoding="utf-8") as f:
+        dictStatic.clear()
+        with open("data/{}_{}gram.model".format(direction, N), "w", encoding="utf-8") as f:
             f.write(json.dumps(dictProbability, ensure_ascii=False))
-
+        return dictProbability
 
 
 if __name__ == "__main__":
@@ -267,11 +283,15 @@ if __name__ == "__main__":
     #         "记者：你怎么会说出那番话，我只是觉得",
     #         "我只是觉得，对准我自己打"]
     # context = [" ".join(jieba.lcut(e)) for e in context]
-    # NGram.train(context, 3, "front")
+    # x = NGram.train(context, 3, "front")
     # NGram.train(context, 3, "back")
 
-    NGram.train_from_file("data/ngram_file.txt", 3, "front")
-    NGram.train_from_file("data/ngram_file.txt", 3, "back")
+    # y = NGram.train_from_file("data/ngram_test", 3, direction="front", need_cut=False)
+    # print("x==y", x==y)
+
+    NGram.train_from_file("data/wiki_jieba_test", 3, direction="front", need_cut=False)
+    # NGram.train_from_file("data/wiki_jieba", 3, direction="back", need_cut=False)
+
 
     # 错误检测
     # sentence = "为乐祖国，为了审理，向我凯跑！向我开炮！"
