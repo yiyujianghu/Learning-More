@@ -148,7 +148,7 @@ class NGram():
                     continue
                 rightDisplay = copy.deepcopy(self.sentenceList)
                 rightDisplay[index4update] = "\033[0;36m{}\033[0m".format(self.sentenceList[index4update])
-                self.displayList.append("\033[0;36m{}\033[0m".format("拼音改正：")+self.sentenceRestore(rightDisplay))
+                self.displayList.append("\033[0;36m{}\033[0m".format("错误改正：")+self.sentenceRestore(rightDisplay))
         self.sentence = self.sentenceRestore(self.sentenceList)
         self.sentenceList.clear()
         self.stopLocation.clear()
@@ -235,18 +235,47 @@ class NGram():
             f.write(json.dumps(dictProbability, ensure_ascii=False))
 
 
+    @classmethod
+    def train_from_file(cls, file_path, N, direction, need_cut=True):
+        dictStatic = {}
+        stopList = cls.loadStopList("data/stopword.txt")
+        with open(file_path, "r", encoding="utf-8") as file:
+            for line in file:
+                if len(line) <= 1:
+                    continue
+                else:
+                    if need_cut == True:
+                        line_data = [w for w in jieba.cut(line.replace("\n", "")) if w not in stopList]
+                    else:
+                        line_data = cls.rmStopword([line.replace("\n", "")])[0]
+                    line_data.insert(0, "<HEAD>")
+                    line_data.append("<END>")
+                    if direction == "back":
+                        line_data = line_data[::-1]
+                    cls.addLine(dictStatic, line_data, N)
+        dictStatic["count"] = cls.calOneCount(dictStatic)
+        dictProbability = {"prob": 0}
+        dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
+        with open("data/{}_{}_gram.model".format(direction, N), "w", encoding="utf-8") as f:
+            f.write(json.dumps(dictProbability, ensure_ascii=False))
+
+
+
 if __name__ == "__main__":
     # 模型训练
-    context = ["为了祖国，为了胜利，向我开炮！向我开炮！",
-            "记者：你怎么会说出那番话，我只是觉得",
-            "我只是觉得，对准我自己打"]
-    context = [" ".join(jieba.lcut(e)) for e in context]
-    NGram.train(context, 3, "front")
-    NGram.train(context, 3, "back")
+    # context = ["为了祖国，为了胜利，向我开炮！向我开炮！",
+    #         "记者：你怎么会说出那番话，我只是觉得",
+    #         "我只是觉得，对准我自己打"]
+    # context = [" ".join(jieba.lcut(e)) for e in context]
+    # NGram.train(context, 3, "front")
+    # NGram.train(context, 3, "back")
+
+    NGram.train_from_file("data/ngram_file.txt", 3, "front")
+    NGram.train_from_file("data/ngram_file.txt", 3, "back")
 
     # 错误检测
-    sentence = "为乐祖国，为了审理，向我凯跑！向我开炮！"
-    example = NGram(sentence)
-    example.load_userdict("data/dict.txt")
-    example.detectERROR(3, -50, "bi_direction")
-    example.display()
+    # sentence = "为乐祖国，为了审理，向我凯跑！向我开炮！"
+    # example = NGram(sentence)
+    # example.load_userdict("data/dict.txt")
+    # example.detectERROR(3, -50, "bi_direction")
+    # example.display()

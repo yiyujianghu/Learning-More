@@ -8,6 +8,8 @@
 
 from pypinyin import lazy_pinyin
 import json
+from datetime import datetime
+
 
 class PinyinCorrector():
     def __init__(self, word):
@@ -16,6 +18,8 @@ class PinyinCorrector():
         self.pinyin_dict_path = "data/pinyin2word.model"
         self.pinyin_set_path = "data/pinyin_set.model"
         self.pinyin_dict, self.pinyin_set = self.loadModel(self.pinyin_dict_path, self.pinyin_set_path)
+        self.before_time = datetime.now()
+        self.after_time = datetime.now()
 
 
     @classmethod
@@ -25,6 +29,13 @@ class PinyinCorrector():
         with open(pinyin_set_path, "r", encoding="utf-8") as f:
             pinyin_set = set([line.split("\n")[0] for line in f.readlines()])
         return pinyin_dict, pinyin_set
+
+
+    def delta_time_calculate(self):
+        self.after_time = datetime.now()
+        delta_time = self.after_time - self.before_time
+        self.before_time = datetime.now()
+        return delta_time
 
 
     def pinyinEdit(self, pinyin):
@@ -66,7 +77,6 @@ class PinyinCorrector():
 
     def wordCandidate(self):
         '''这里用候选拼音查表生成候选词语'''
-
         word_pinyin = lazy_pinyin(self.word)
         pinyin_candidate = self.pinyinCandidate(word_pinyin)
         self.wordCandidateSearch(pinyin_candidate)
