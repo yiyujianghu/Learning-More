@@ -124,12 +124,15 @@ class NGram():
             self.detectERROR(N, threshold, "front")
             self.detectERROR(N, threshold, "back")
             return None
+        try:
+            dictProb = self.loadModel(self.base_ngram_path+"{}_{}gram.model".format(direction, N))
+        except:
+            return None
         self.sentencePreprocessed()
         directionInformation = "*** 正向检测 >>>" if direction=="front" else "*** 反向检测 >>>"
         sentenceList4detect = self.sentenceList if direction=="front" else list(reversed(self.sentenceList))
         self.displayList.append(directionInformation)
         length = len(self.sentenceList)
-        dictProb = self.loadModel(self.base_ngram_path+"{}_{}gram.model".format(direction, N))
         for i in range(len(sentenceList4detect) - N):
             index4update = (i+N)-1 if direction=="front" else length-(i+N)          # 考虑到正方两种顺序错误词的标号不同
             errorDisplay = copy.deepcopy(self.sentenceList)
@@ -294,7 +297,7 @@ if __name__ == "__main__":
 
 
     # 错误检测
-    # sentence = "为乐祖国，为了审理，向我凯跑！向我开炮！"
+    # sentence = "推动传统流通企业创新转型升级。"
     # example = NGram(sentence)
     # example.load_userdict("data/dict.txt")
     # example.detectERROR(3, -50, "bi_direction")
