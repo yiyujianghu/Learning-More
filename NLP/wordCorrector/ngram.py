@@ -168,12 +168,13 @@ class NGram():
     @classmethod
     def rmStopword(cls, data_input):
         data_output = []
+        stopList = cls.loadStopList("data/stopword.txt")
         for i in range(len(data_input)):
-            line_list = []
+            line = []
             for w in data_input[i].split(" "):
-                if w != " ":
-                    line_list.append(w)
-            data_output.append(line_list)
+                if w not in stopList:
+                    line.append(w)
+            data_output.append(line)
         return data_output
 
 
@@ -241,10 +242,14 @@ class NGram():
 
 
     @classmethod
-    @profile
+    # @profile
     def train_from_file(cls, file_path, N, direction="front", need_cut=True):
+        """ direction：正向还是反向训练ngram；
+            need_cut： 输入语句是否需要做分词处理，need_cut==True时，文件中的语句需要做分词处理；
+            @profile： 用于打印内存状况的装饰器；
+        """
         dictStatic = {}
-        # stopList = cls.loadStopList("data/stopword.txt")
+        stopList = cls.loadStopList("data/stopword.txt")
         line_count = 0
         file_list = []
         if os.path.isfile(file_path):           # 如果是单个文件则当作list处理
@@ -254,8 +259,9 @@ class NGram():
                 file_list.append(file_path+"/"+fname)
         file_num = len(file_list)
         for i in range(file_num):
-            print("file_name：{}，已完成转换行数：{}万，已完成转换进度：{}%".format(file_list[i], line_count//10000, (100*i)//file_num))
-            print("查看dictStatic内存占用：{}".format(sys.getsizeof(dictStatic)))
+            if file_num > 1:
+                print("file_name：{}，已完成转换行数：{}万，已完成转换进度：{}%".format(file_list[i], line_count//10000, (100*i)//file_num))
+                print("查看dictStatic内存占用：{}".format(sys.getsizeof(dictStatic)))
             with open(file_list[i], "r", encoding="utf-8") as file:
                 for line in file:
                     if len(line) <= 1:
@@ -263,7 +269,7 @@ class NGram():
                     else:
                         line_count += 1
                         if need_cut == True:
-                            line_data = [w for w in jieba.cut(line.replace("\n", "")) if w != " "]
+                            line_data = [w for w in jieba.cut(line.replace("\n", "")) if w not in stopList]
                         else:
                             line_data = cls.rmStopword([line.replace("\n", "")])[0]
                         line_data.insert(0, "<HEAD>")
@@ -282,17 +288,17 @@ class NGram():
 
 if __name__ == "__main__":
     # 模型训练
-    # context = ["为了祖国，为了胜利，向我开炮！向我开炮！",
-    #         "记者：你怎么会说出那番话，我只是觉得",
-    #         "我只是觉得，对准我自己打"]
-    # context = [" ".join(jieba.lcut(e)) for e in context]
-    # x = NGram.train(context, 3, "front")
+    context = ["为了祖国，为了胜利，向我开炮！向我开炮！",
+            "记者：你怎么会说出那番话，我只是觉得",
+            "我只是觉得，对准我自己打"]
+    context = [" ".join(jieba.lcut(e)) for e in context]
+    x = NGram.train(context, 3, "front")
     # NGram.train(context, 3, "back")
 
-    # y = NGram.train_from_file("data/ngram_test", 3, direction="front", need_cut=False)
-    # print("x==y", x==y)
+    y = NGram.train_from_file("data/ngram_test", 3, direction="front", need_cut=True)
+    print("x==y", x==y)
 
-    NGram.train_from_file("data/wiki_jieba_test", 3, direction="front", need_cut=False)
+    # NGram.train_from_file("data/wiki_jieba_test", 3, direction="front", need_cut=False)
     # NGram.train_from_file("data/wiki_jieba", 3, direction="back", need_cut=False)
 
 
