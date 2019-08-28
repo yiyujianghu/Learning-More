@@ -67,7 +67,7 @@ class MistakeCorrector():
     @classmethod
     def build_model(cls):
         mistakeDict = {}
-        mistakeList = ["白自", "建延廷", "台合", "洽冶", "申由甲田", "熊能", "习刁匀", "崇祟", "今令"]
+        mistakeList = ["白自", "建延廷", "台合", "洽冶", "申由甲田", "熊能", "习刁匀勺", "崇祟", "今令", "日曰目"]
         with open("data/mistake.model", "w", encoding="utf-8") as f:
             for line in mistakeList:
                 for w in line:
@@ -76,7 +76,7 @@ class MistakeCorrector():
 
 
 if __name__ == "__main__":
-    # MistakeCorrector.build_model()
+    MistakeCorrector.build_model()
     example = MistakeCorrector("白天")
     example.wordCandidate()
     print(example.word_candidate)
