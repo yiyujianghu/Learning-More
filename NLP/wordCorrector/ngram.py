@@ -223,7 +223,7 @@ class NGram():
 
 
     @classmethod
-    def train(cls, data_input, N, direction):
+    def data2dictStatic(cls, data_input, N, direction):
         data = cls.rmStopword(data_input)
         for i in range(len(data)):
             data[i].insert(0, "<HEAD>")
@@ -234,33 +234,25 @@ class NGram():
         for line in data:
             cls.addLine(dictStatic, line, N)
         dictStatic["count"] = cls.calOneCount(dictStatic)
-        dictProbability = {"prob": 0}
-        dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
-        with open("data/{}_{}gram.model".format(direction, N), "w", encoding="utf-8") as f:
-            f.write(json.dumps(dictProbability, ensure_ascii=False))
-        return dictProbability
+        return dictStatic
 
 
     @classmethod
-    # @profile
-    def train_from_file(cls, file_path, N, direction="front", need_cut=True):
-        """ direction：正向还是反向训练ngram；
-            need_cut： 输入语句是否需要做分词处理，need_cut==True时，文件中的语句需要做分词处理；
-            @profile： 用于打印内存状况的装饰器；
-        """
+    def file2dictStatic(cls, file_path, N, direction, need_cut):
         dictStatic = {}
         stopList = cls.loadStopList("data/stopword.txt")
         line_count = 0
         file_list = []
-        if os.path.isfile(file_path):           # 如果是单个文件则当作list处理
+        if os.path.isfile(file_path):  # 如果是单个文件则当作list处理
             file_list.append(file_path)
-        elif os.path.isdir(file_path):          # 如果单个文件太大，内存不够，则拆分成多个文件放在文件夹中，依次写入数据
+        elif os.path.isdir(file_path):  # 如果单个文件太大，内存不够，则拆分成多个文件放在文件夹中，依次写入数据
             for fname in os.listdir(file_path):
-                file_list.append(file_path+"/"+fname)
+                file_list.append(file_path + "/" + fname)
         file_num = len(file_list)
         for i in range(file_num):
             if file_num > 1:
-                print("file_name：{}，已完成转换行数：{}万，已完成转换进度：{}%".format(file_list[i], line_count//10000, (100*i)//file_num))
+                print("file_name：{}，已完成转换行数：{}万，已完成转换进度：{}%".format(file_list[i], line_count // 10000,
+                                                                    (100 * i) // file_num))
                 print("查看dictStatic内存占用：{}".format(sys.getsizeof(dictStatic)))
             with open(file_list[i], "r", encoding="utf-8") as file:
                 for line in file:
@@ -278,6 +270,27 @@ class NGram():
                             line_data = line_data[::-1]
                         cls.addLine(dictStatic, line_data, N)
         dictStatic["count"] = cls.calOneCount(dictStatic)
+        return dictStatic
+
+
+    @classmethod
+    def train(cls, data_input, N, direction="front"):
+        dictStatic = cls.data2dictStatic(data_input, N, direction)
+        dictProbability = {"prob": 0}
+        dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
+        with open("data/{}_{}gram.model".format(direction, N), "w", encoding="utf-8") as f:
+            f.write(json.dumps(dictProbability, ensure_ascii=False))
+        return dictProbability
+
+
+    @classmethod
+    # @profile
+    def train_from_file(cls, file_path, N, direction="front", need_cut=True):
+        """ direction：正向还是反向训练ngram；
+            need_cut： 输入语句是否需要做分词处理，need_cut==True时，文件中的语句需要做分词处理；
+            @profile： 用于打印内存状况的装饰器；
+        """
+        dictStatic = cls.file2dictStatic(file_path, N, direction, need_cut)
         dictProbability = {"prob": 0}
         dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
         dictStatic.clear()
