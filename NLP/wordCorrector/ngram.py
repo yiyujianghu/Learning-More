@@ -27,6 +27,7 @@ from datetime import datetime
 from memory_profiler import profile
 from PinyinCorrector import PinyinCorrector
 from MistakeCorrector import MistakeCorrector
+from Kneser_Ney import BaseNGramProb, Kneser_Ney
 
 
 class NGram():
@@ -276,8 +277,9 @@ class NGram():
     @classmethod
     def train(cls, data_input, N, direction="front"):
         dictStatic = cls.data2dictStatic(data_input, N, direction)
-        dictProbability = {"prob": 0}
-        dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
+        # dictProbability = {"prob": 0}
+        # dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
+        dictProbability = Kneser_Ney.caculateProb(dictStatic, N)
         with open("data/{}_{}gram.model".format(direction, N), "w", encoding="utf-8") as f:
             f.write(json.dumps(dictProbability, ensure_ascii=False))
         return dictProbability
@@ -291,8 +293,9 @@ class NGram():
             @profile： 用于打印内存状况的装饰器；
         """
         dictStatic = cls.file2dictStatic(file_path, N, direction, need_cut)
-        dictProbability = {"prob": 0}
-        dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
+        # dictProbability = {"prob": 0}
+        # dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
+        dictProbability = Kneser_Ney.caculateProb(dictStatic, N)
         dictStatic.clear()
         with open("data/{}_{}gram.model".format(direction, N), "w", encoding="utf-8") as f:
             f.write(json.dumps(dictProbability, ensure_ascii=False))
@@ -306,7 +309,7 @@ if __name__ == "__main__":
             "我只是觉得，对准我自己打"]
     context = [" ".join(jieba.lcut(e)) for e in context]
     x = NGram.train(context, 3, "front")
-    # NGram.train(context, 3, "back")
+    NGram.train(context, 3, "back")
 
     y = NGram.train_from_file("data/ngram_test", 3, direction="front", need_cut=True)
     print("x==y", x==y)
@@ -316,8 +319,8 @@ if __name__ == "__main__":
 
 
     # 错误检测
-    # sentence = "推动传统流通企业创新转型升级。"
-    # example = NGram(sentence)
-    # example.load_userdict("data/dict.txt")
-    # example.detectERROR(3, -50, "bi_direction")
-    # example.display()
+    sentence = "推动传统流通企业创新转型升级。"
+    example = NGram(sentence)
+    example.load_userdict("data/dict.txt")
+    example.detectERROR(3, -50, "bi_direction")
+    example.display()
