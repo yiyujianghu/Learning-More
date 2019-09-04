@@ -327,19 +327,15 @@ if __name__ == "__main__":
     #         "我只是觉得，对准我自己打"]
     # context = [" ".join(jieba.lcut(e)) for e in context]
     # x = NGram.train(context, 3, "front")
-    # print(x)
-    #
-    # y = NGram.train_from_file("data/ngram_test", 3, direction="front", need_cut=True)
-    # print(y)
-    # print("x==y", x==y)
 
-    NGram.train_from_file("data/wiki_jieba.txt", 3, direction="front", need_cut=False)
+    y = NGram.train_from_file("data/ngram_test", 3, direction="front", need_cut=True)
+
+    # NGram.train_from_file("data/wiki_jieba.txt", 3, direction="front", need_cut=False)
     # NGram.train_from_file("data/wiki_jieba.txt", 3, direction="back", need_cut=False)
 
 
     # 错误检测
-    # sentence = "推动传统流通企业创新转型升级。"
-    # example = NGram(sentence)
-    # example.load_userdict("data/dict.txt")
-    # example.detectERROR(3, -50, "bi_direction")
-    # example.display()
+    sentence = "推动传统流通企业创新转型升级。"
+    example = NGram(sentence)
+    example.detectERROR(3, -50, "front")
+    example.display()
