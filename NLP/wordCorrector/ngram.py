@@ -66,9 +66,13 @@ class NGram():
             self.userdict_path = file_path
 
 
-    def sentencePreprocessed(self):
+    def sentencePreprocessed(self, tokenizer="word"):
         self.sentenceList = []
-        sentenceCutList = jieba.lcut(self.sentence)
+        if tokenizer == "character":
+            sentenceCutList = list(self.sentence)
+        else:
+            sentenceCutList = jieba.lcut(self.sentence)
+
         for i in range(len(sentenceCutList)):
             if sentenceCutList[i] not in self.stopList:
                 self.sentenceList.append(sentenceCutList[i])
@@ -120,16 +124,16 @@ class NGram():
         return word_candidate_score[0]
 
 
-    def detectERROR(self, N=3, threshold=-50, direction="front"):
+    def detectERROR(self, N=3, threshold=-50, direction="front", tokenizer="word"):
         if direction=="bi_direction":
-            self.detectERROR(N, threshold, "front")
-            self.detectERROR(N, threshold, "back")
+            self.detectERROR(N, threshold, "front", tokenizer=tokenizer)
+            self.detectERROR(N, threshold, "back", tokenizer=tokenizer)
             return None
         try:
             dictProb = self.loadModel(self.base_ngram_path+"{}_{}gram.model".format(direction, N))
         except:
             return None
-        self.sentencePreprocessed()
+        self.sentencePreprocessed(tokenizer=tokenizer)
         directionInformation = "*** 正向检测 >>>" if direction=="front" else "*** 反向检测 >>>"
         sentenceList4detect = self.sentenceList if direction=="front" else list(reversed(self.sentenceList))
         self.displayList.append(directionInformation)
@@ -292,9 +296,9 @@ class NGram():
     @classmethod
     def train(cls, data_input, N, direction="front"):
         dictStatic = cls.data2dictStatic(data_input, N, direction)
-        dictProbability = {"prob": 0}
-        dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
-        # dictProbability = Kneser_Ney.caculateProb(dictStatic, N)
+        # dictProbability = {"prob": 0}
+        # dictProbability = cls.caculateProb(dictStatic, dictProbability["prob"])
+        dictProbability = Kneser_Ney.caculateProb(dictStatic, N)
         with open("data/{}_{}gram.model".format(direction, N), "w", encoding="utf-8") as f:
             f.write(json.dumps(dictProbability, ensure_ascii=False))
         return dictProbability
@@ -330,12 +334,13 @@ if __name__ == "__main__":
 
     y = NGram.train_from_file("data/ngram_test", 3, direction="front", need_cut=True)
 
-    # NGram.train_from_file("data/wiki_jieba.txt", 3, direction="front", need_cut=False)
-    # NGram.train_from_file("data/wiki_jieba.txt", 3, direction="back", need_cut=False)
+    # NGram.train_from_file("data/query.txt", 3, direction="front", need_cut=False)
+    # NGram.train_from_file("data/query.txt", 3, direction="back", need_cut=False)
 
 
     # 错误检测
-    sentence = "推动传统流通企业创新转型升级。"
+    sentence = "哈佛最近多少钱？"
     example = NGram(sentence)
-    example.detectERROR(3, -50, "front")
+    example.detectERROR(3, -50, "front", tokenizer="character")
     example.display()
+    print("#####", example.sentence)
