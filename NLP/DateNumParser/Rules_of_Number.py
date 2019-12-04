@@ -20,7 +20,32 @@ class Rule_Method():
         except:
             return {}
 
+    @classmethod
+    def unit_merge(cls, measure_str):
+        if isinstance(measure_str, dict):
+            return "|".join(measure_str.values())
+        else:
+            return ""
+
+
 class Rules_of_Number():
+    # 常见的计量单位及同义词转换
+    measure_dict = {"length": {"米":"m", "m":"m", "千米":"km", "公里":"km", "km":"km",
+                            "厘米":"cm", "cm":"cm", "毫米":"mm", "mm":"mm"},
+                        "weight": {"克":"g", "g":"g", "千克":"kg", "公斤":"kg", "kg":"kg"},
+                        "time": {"小时":"h", "分钟":"min", "秒":"s", "s":"s"}}
+
+    measure_convert_dict = {"length": {"m":1, "km":1000, "cm":0.01, "mm":0.001, "std":"m"},
+                                "weight": {"kg":1, "g":0.001, "std":"kg"},
+                                "time": {"s":1, "h":3600, "min":60, "std":"s"}}
+
+    measure_str = Rule_Method.dt_cal_str(measure_dict)
+    measure_all_str = Rule_Method.unit_merge(measure_str)
+
+    measure_rule = r"((?P<length>[0-9]+(\.[0-9]+)?({length}))|" \
+                       r"(?P<weight>[0-9]+(\.[0-9]+)?({weight}))|" \
+                       r"(?P<time>[0-9]+(\.[0-9]+)?({time})))".format(**measure_str)
+
     # 特殊时间表达"如：差一刻三点"的汉字正则规则
     re_zh_num = {"1-4": "[一二三四]",
                  "1-5": "[一二三四五]",
@@ -46,34 +71,48 @@ class Rules_of_Number():
                          "time_interval":{"凌晨":3, "清晨":6, "早晨":7, "上午":9, "中午":12, "午后":13, "下午":15, "傍晚":18, "晚上":19, "深夜":23, "default":-1}}
 
     dt_calculate_str = Rule_Method.dt_cal_str(dt_calculate_dict)
-    dt_calculate_str["number"] = r"[\d一二三四五六七八九十两百千万]"
+    dt_calculate_str["number"] = r"[0-9一二三四五六七八九十两百千万]"
 
     dt_calculate_rule = r"((?P<years>({years})的*)|" \
-                        r"(?P<year_offset>({number}+年[之以]?[前后])|(过了?{number}+年))|" \
+                        r"(?P<year_offset>({number}+年[之以]?[前后])|(过了{number}+年))|" \
                         r"(?P<months>({months})的*)|" \
-                        r"(?P<month_offset>({number}+个?月[之以]?[前后])|(过了?{number}+个?月))|" \
-                        r"((?P<weeks>({weeks})的*)(?P<week_value>((周|星期)?[一二三四五六日]?)的*))|" \
-                        r"(?P<week_offset>({number}+(周|星期)[之以]?[前后])|(过了?{number}+(周|星期)))|" \
+                        r"(?P<month_offset>({number}+个?月[之以]?[前后])|(过了{number}+个?月))|" \
+                        r"((?P<weeks>({weeks})的?)(?P<week_value>((周|星期)?[一二三四五六日]*的?)))|" \
+                        r"(?P<week_offset>({number}+(周|星期)[之以]?[前后])|(过了{number}+(周|星期)))|" \
                         r"(?P<days>({days})的*)|" \
-                        r"(?P<day_offset>({number}+天[之以]?[前后])|(过了?{number}+天))|" \
+                        r"(?P<day_offset>({number}+天[之以]?[前后])|(过了{number}+天))|" \
                         r"(?P<time_interval>({time_interval})的*)|" \
-                        r"(?P<hour_offset>({number}+小时[之以]?[前后])|(过了?{number}+小时))|" \
-                        r"(?P<minute_offset>({number}+分钟[之以]?[前后])|(过了?{number}+分钟))|" \
-                        r"(?P<second_offset>({number}+秒[之以]?[前后])|(过了?{number}+秒)))+".format(**dt_calculate_str)
+                        r"(?P<hour_offset>({number}+小时[之以]?[前后])|(过了{number}+小时))|" \
+                        r"(?P<minute_offset>({number}+分钟[之以]?[前后])|(过了{number}+分钟))|" \
+                        r"(?P<second_offset>({number}+秒[之以]?[前后])|(过了{number}+秒)))+".format(**dt_calculate_str)
 
     # 所有的数字类型年月日时的正则规则，采用?P<group>提取时间并考虑六个参数都存在的情况
     datetime_dict = {'year_number': r"([1-9]\d)?\d{2}",
                      'month_number': r"0?[1-9]|1[0-2]",
                      'day_number': r"0?[1-9]|[1-2][0-9]|3[0-1]",
                      'hour_number': r"(20|21|22|23|[0-1]?\d)",
-                     'min_sec_number': r"[0-5]?\d"
+                     'min_sec_number': r"[0-5]?\d",
+                     'measure_all_str':measure_all_str
                      }
-    date_ymd = r"(?P<year>({year_number})[-/.年])" \
-               r"(?P<month>({month_number})*[-/.月]*)" \
+
+    date_point_ymd = r"((?P<year>({year_number}))(\.)" \
+                     r"(?P<month>({month_number}))(\.)" \
+                     r"(?P<day>({day_number})))".format(**datetime_dict)
+
+    date_point_ym = r"((?P<year>({year_number}))(\.)" \
+                    r"(?P<month>({month_number}))(?!({measure_all_str}))" \
+                    r"(?P<day>))".format(**datetime_dict)
+
+    date_point_md = r"((?P<year>)" \
+                    r"(?P<month>({month_number}))(\.)" \
+                    r"(?P<day>({day_number}))(?!({measure_all_str})))".format(**datetime_dict)
+
+    date_ymd = r"(?P<year>({year_number})[-/年])" \
+               r"(?P<month>({month_number})*[-/月]*)" \
                r"(?P<day>({day_number})*[日号]*)".format(**datetime_dict)
 
     date_md = r"(?P<year>)" \
-              r"(?P<month>({month_number})[-/.月])" \
+              r"(?P<month>({month_number})[-/月])" \
               r"(?P<day>({day_number})*[日号]*)".format(**datetime_dict)
 
     date_d = r"(?P<year>)" \
@@ -88,9 +127,8 @@ class Rules_of_Number():
                 r"(?P<date_mask>(MASK_DATE_I+_)的?)|" \
                 r"(?P<time_mask>(MASK_TIME_I+_)的?))+"
 
-    # 常见的计量单位及同义词转换
-    measurement_dict = {"米":"m", "m":"m", "千米":"km", "公里":"km", "km":"km", "厘米":"cm", "cm":"cm", "毫米":"mm", "mm":"mm",
-                        "克":"g", "g":"g", "千克":"kg", "公斤":"kg", "kg":"kg"}
+
+
 
 
 
@@ -98,20 +136,5 @@ class Rules_of_Number():
 
 
 if __name__ == "__main__":
-    # result = re.search(Rules_of_Number.datetime_mdhm, "3号1点2分")
-    # list = ["year", "month", "day", "hour", "minute", "second"]
-    # xxx = ["".join(filter(str.isdigit, result.group(i))) for i in list]
-    # print("xxx", xxx)
-    # import datetime
-    # now = datetime.datetime.now()
-    # source_list = [now.__getattribute__(i) for i in list]
-    # for i in range(len(xxx)):
-    #     xxx[i] = source_list[i] if xxx[i] == "" else xxx[i]
-    # print("source_list", source_list)
-    # print("xxx", xxx)
-
-    print(Rules_of_Number.dt_calculate_str)
-    print(Rules_of_Number.dt_calculate_rule)
-    print(re.search(Rules_of_Number.dt_calculate_rule, "上周周一，去年2月8号，昨天下午五点"))
-    print(re.search(Rules_of_Number.dt_calculate_rule, "去年的2月8号，昨天下午五点"))
-    print(re.search(Rules_of_Number.dt_calculate_rule, "昨天下午的五点"))
+    query = "昨天我走了1.5小时，今天是1998.2.5"
+    print(re.search(Rules_of_Number.date_point_md, query))

@@ -19,12 +19,11 @@ class DateNumParser():
         self.res_content = content
         self.source_DT = datetime.datetime.now() if not source_DT else self.parseSourceDT(source_DT)
         # 以下四个属性是为了给数字日期等打MASK，便于循环检测到最后，然后按照标识依次拼接
-        self.MASK_DT_CAL = {"count":0, "default":{"analyzed": {}, "original": "", "time_interval": -1}}
+        self.MASK_DT_CAL = {"count":0, "default":{"analyzed": {}, "original": "", "time_interval": -1, "week_value":-1}}
         self.MASK_DATE = {"count":0, "default":{'analyzed':[-1, -1, -1], 'original':""}}
         self.MASK_TIME = {"count":0, "default":{'analyzed':[-1, -1, -1], 'original':""}}
         self.MASK_FINAL = {"count":0}
-
-        self.result_display = ""
+        self.RESULT = []
 
 
     def parseSourceDT(self, sourceDT):
@@ -113,6 +112,7 @@ class DateNumParser():
 
 
     def datetime_offset_calculate(self, dt_cal_dict):
+        # 目前此接口的问题就是：timedelta中没有年/月的偏置项，因此只能通过换算成天来计算，但考虑闰年和不同月份天数方面还有一些问题
         time_interval = Rules_of_Number.dt_calculate_dict["time_interval"][dt_cal_dict["time_interval"]]
         dt_offset = {"year_offset":0, "month_offset":0, "week_offset":0, "day_offset":0,
                      "hour_offset":0, "minute_offset":0, "second_offset":0, "week_value":-1}
@@ -162,7 +162,8 @@ class DateNumParser():
 
     def datetime_std_parse(self, query, type="TIME"):
         if type == "DATE":
-            rules = [Rules_of_Number.date_ymd, Rules_of_Number.date_md, Rules_of_Number.date_d]
+            rules = [Rules_of_Number.date_point_ymd, Rules_of_Number.date_point_ym, Rules_of_Number.date_point_md,
+                     Rules_of_Number.date_ymd, Rules_of_Number.date_md, Rules_of_Number.date_d]
             MASK_DICT = self.MASK_DATE
             MASK_STR = "MASK_DATE_{}_"
             dt_range = (0, 3)
@@ -231,12 +232,11 @@ class DateNumParser():
             BASE_DT_FINAL = BASE_DT + \
                             datetime.timedelta(**self.MASK_DT_CAL[content_mask_dict['cal_mask']]["analyzed"]) + \
                             datetime.timedelta(days=week_days_offset)
-            MASK_DT_FINAL_FLAG = "MASK_DT_FINAL_{}_".format(self.numeric_tag(self.MASK_FINAL["count"]))
+            MASK_DT_FINAL_FLAG = "MASK_FINAL_{}_".format(self.numeric_tag(self.MASK_FINAL["count"]))
             ORIGIN_STR =self.MASK_DT_CAL[content_mask_dict['cal_mask']]["original"] + \
                         self.MASK_DATE[content_mask_dict['date_mask']]["original"] + \
                         self.MASK_TIME[content_mask_dict['time_mask']]["original"]
-            self.MASK_FINAL[MASK_DT_FINAL_FLAG] = {"analyzed": BASE_DT_FINAL, "original": ORIGIN_STR}
-            print("self.MASK_DT_FINAL", self.MASK_FINAL)
+            self.MASK_FINAL[MASK_DT_FINAL_FLAG] = {"analyzed": BASE_DT_FINAL, "original": ORIGIN_STR, "type":"datetime"}
             res_query = re.sub(content_mask_final.group(), MASK_DT_FINAL_FLAG, res_query)
         return res_query
 
@@ -253,25 +253,79 @@ class DateNumParser():
         res_content_std_date = self.datetime_std_parse(res_content_std_time, type="DATE")
         # 这里已经将所有的数字格式时间提取出来，然后根据上下文做推理，然后拼接到current_dt_list中，然后拼入datetime
         res_mask_dt = self.datetime_connect(res_content_std_date)
-        print(res_mask_dt)
         return res_mask_dt
 
 
+    def measure_standard(self, measure_data, unit=None):
+        if re.search(r"[0-9]+(\.[0-9]+)?", measure_data):
+            analyzed_data_number = re.search(r"[0-9]+(\.[0-9]+)?", measure_data).group()
+        else:
+            analyzed_data_number = ""
+        analyzed_data_unit = measure_data.replace(analyzed_data_number, "")
+        if unit:
+            analyzed_data_unit = Rules_of_Number.measure_dict[unit][analyzed_data_unit]
+            analyzed_data_number = float(analyzed_data_number)*Rules_of_Number.measure_convert_dict[unit][analyzed_data_unit]
+            analyzed_data_unit = Rules_of_Number.measure_convert_dict[unit]["std"]
+        return analyzed_data_number, analyzed_data_unit
+
+
+    def measure_parse(self, content):
+        res_content = content
+        while re.search(Rules_of_Number.measure_rule, res_content):
+            self.MASK_FINAL["count"] += 1
+            content_measure = re.search(Rules_of_Number.measure_rule, res_content)
+            for unit in Rules_of_Number.measure_str.keys():
+                if content_measure.group(unit):
+                    measure_origin_data = content_measure.group(unit)
+                    analyzed_data_number, analyzed_data_unit = self.measure_standard(measure_origin_data, unit=unit)
+                    MASK_MEASURE_FLAG = "MASK_FINAL_{}_".format(self.numeric_tag(self.MASK_FINAL["count"]))
+                    self.MASK_FINAL[MASK_MEASURE_FLAG] = {"analyzed": (analyzed_data_number, analyzed_data_unit),
+                                                          "original": measure_origin_data,
+                                                          "type": unit}
+                    res_content = re.sub(measure_origin_data, MASK_MEASURE_FLAG, res_content)
+                    break
+                else:
+                    continue
+        return res_content
+
+
     def display(self):
-        pass
+        # display_content = self.res_content
+        if self.MASK_FINAL["count"] > 0:
+            while re.search(r"MASK_FINAL_I+_", self.res_content):
+                mask_info = re.search(r"MASK_FINAL_I+_", self.res_content).group()
+                mask_content = self.MASK_FINAL[mask_info]
+                if isinstance(mask_content, dict):
+                    analyzed_info = mask_content.get("analyzed")
+                    display_type = mask_content.get("type")
+                else:
+                    analyzed_info, display_type = None, None
+                if analyzed_info and display_type:
+                    if display_type == "datetime":
+                        result_str = analyzed_info.strftime('%Y-%m-%d %H:%M:%S')
+                    else:
+                        result_str = "".join([str(analyzed_info[0]), analyzed_info[1]])
+                    self.RESULT.append(result_str)
+                else:
+                    result_str = "(未识别)"
+                result_str_display = "\033[4;36m{}\033[0m".format(result_str)
+                self.res_content = re.sub(mask_info, result_str_display, self.res_content)
+        print(self.content)
+        print(self.res_content)
 
-
-    def quantifier_parse(self):
-        pass
 
 
     def parse(self):
-        pass
+        origin_content = self.content
+        datetime_data = self.datetime_parse(origin_content)
+        final_content = self.measure_parse(datetime_data)
+        self.res_content = final_content
+        return self.res_content
+
 
 
 if __name__ == "__main__":
-    # parse = DateNumParser("今天下午三点半，我和他一起出去，明天下午两点二十,后天二十三点一刻和大后天十点零二分,上午十点")
-    # parse = DateNumParser("今天下午差五分五点，我们在吃火锅，去年五月三号的六点半我们会出去办点事，今年五月十五号的时候是非常好的天气")
-    parse = DateNumParser("时间定在下周一下午的五点半")
-    parse.datetime_parse("时间定在下周一下午的五点半")
+    parse = DateNumParser("在上周一下午五点差一刻的时候，他走了八公里的山路，花了大概一个半小时")
+    parse.parse()
+    parse.display()
 

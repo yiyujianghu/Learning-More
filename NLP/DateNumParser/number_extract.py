@@ -65,6 +65,7 @@ class NumberExtract():
             char_new = str(cls.unitchar2num(detect_char))
         return char_new
 
+
     @classmethod
     def decimal_transfer(cls, detect_char):
         integer_char, decimal_char = detect_char.split("点")
@@ -72,6 +73,7 @@ class NumberExtract():
         decimal_num = int(decimal_num)/(10**len(decimal_num))
         number = int(integer_num) + decimal_num
         return str(number)
+
 
     @classmethod
     def fraction_transfer(cls, detect_char):
@@ -105,6 +107,7 @@ class NumberExtract():
             char_new = re.sub(detect_char, ArabicNumerals, char_new, count=1)
         return char_new
 
+
     @classmethod
     def fraction_detect(cls, query):
         number_list = NumberExtract.digit_list
@@ -118,33 +121,19 @@ class NumberExtract():
         return char_new
 
 
-
     @classmethod
     def detect(cls, query):
-        # try:
+        try:
             char_new = cls.decimal_detect(query)
             char_new = cls.fraction_detect(char_new)
             char_new = cls.integer_detect(char_new)
             return char_new
-        # except:
-        #     return query
-
-
+        except:
+            return query
 
 
 
 if __name__ == '__main__':
-    # print(NumberExtract.detect("一九九五年夏天"))
-    # print(NumberExtract.detect("昨天来了一千两百个人，今天来了一千零一个人"))
-    # print(NumberExtract.detect("今天有一个半小时"))
-    # print(NumberExtract.detect("今天有一个半小时"))
-    # print(NumberExtract.detect("今天有一点五小时"))
-    # print(NumberExtract.detect("今天有十个小时"))
-    # print(NumberExtract.detect("这里有三分之二的土地"))
-    # print(NumberExtract.detect("今天下午10点20分"))
-    # print(NumberExtract.detect("增长率两百分之二十"))
-    # print(NumberExtract.detect("增长率百分之二十"))
-    # print(NumberExtract.detect("增长率十分之三"))
-    print(NumberExtract.detect("这里有300人和两辆汽车"))
+    print(NumberExtract.detect("这里有300人和两辆汽车，每年增长率十分之三，共需要一个半小时"))
 
 
