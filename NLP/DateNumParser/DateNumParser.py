@@ -23,7 +23,7 @@ class DateNumParser():
         self.MASK_DATE = {"count":0, "default":{'analyzed':[-1, -1, -1], 'original':""}}
         self.MASK_TIME = {"count":0, "default":{'analyzed':[-1, -1, -1], 'original':""}}
         self.MASK_FINAL = {"count":0}
-        self.RESULT = []
+        self.RESULT = {}
 
 
     def parseSourceDT(self, sourceDT):
@@ -290,7 +290,6 @@ class DateNumParser():
 
 
     def display(self):
-        # display_content = self.res_content
         if self.MASK_FINAL["count"] > 0:
             while re.search(r"MASK_FINAL_I+_", self.res_content):
                 mask_info = re.search(r"MASK_FINAL_I+_", self.res_content).group()
@@ -305,14 +304,16 @@ class DateNumParser():
                         result_str = analyzed_info.strftime('%Y-%m-%d %H:%M:%S')
                     else:
                         result_str = "".join([str(analyzed_info[0]), analyzed_info[1]])
-                    self.RESULT.append(result_str)
+                    if display_type not in self.RESULT:
+                        self.RESULT[display_type] = [result_str]
+                    else:
+                        self.RESULT[display_type].append(result_str)
                 else:
                     result_str = "(未识别)"
-                result_str_display = "\033[4;36m{}\033[0m".format(result_str)
+                result_str_display = "\033[4;32m{}\033[0m".format(result_str)
                 self.res_content = re.sub(mask_info, result_str_display, self.res_content)
-        print(self.content)
-        print(self.res_content)
-
+        print("\033[1;36m原始语句：\033[0m", self.content)
+        print("\033[1;36m解析语句：\033[0m", self.res_content)
 
 
     def parse(self):
@@ -325,7 +326,8 @@ class DateNumParser():
 
 
 if __name__ == "__main__":
-    parse = DateNumParser("在上周一下午五点差一刻的时候，他走了八公里的山路，花了大概一个半小时")
+    parse = DateNumParser("在上周一下午五点差一刻的时候，他走了八公里的山路，花了大概一个半小时。")
     parse.parse()
     parse.display()
+    print(parse.RESULT)
 
