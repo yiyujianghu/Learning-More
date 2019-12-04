@@ -261,7 +261,7 @@ class DateNumParser():
             analyzed_data_number = re.search(r"[0-9]+(\.[0-9]+)?", measure_data).group()
         else:
             analyzed_data_number = ""
-        analyzed_data_unit = measure_data.replace(analyzed_data_number, "")
+        analyzed_data_unit = measure_data.replace(analyzed_data_number, "").replace("多", "")
         if unit:
             analyzed_data_unit = Rules_of_Number.measure_dict[unit][analyzed_data_unit]
             analyzed_data_number = float(analyzed_data_number)*Rules_of_Number.measure_convert_dict[unit][analyzed_data_unit]
@@ -326,7 +326,7 @@ class DateNumParser():
 
 
 if __name__ == "__main__":
-    parse = DateNumParser("在上周一下午五点差一刻的时候，他走了八公里的山路，花了大概一个半小时。")
+    parse = DateNumParser("在上周一下午五点差一刻的时候，他走了八千多公里的山路，花了大概一个半小时。")
     parse.parse()
     parse.display()
     print(parse.RESULT)

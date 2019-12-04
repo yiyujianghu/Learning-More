@@ -42,9 +42,9 @@ class Rules_of_Number():
     measure_str = Rule_Method.dt_cal_str(measure_dict)
     measure_all_str = Rule_Method.unit_merge(measure_str)
 
-    measure_rule = r"((?P<length>[0-9]+(\.[0-9]+)?({length}))|" \
-                       r"(?P<weight>[0-9]+(\.[0-9]+)?({weight}))|" \
-                       r"(?P<time>[0-9]+(\.[0-9]+)?({time})))".format(**measure_str)
+    measure_rule = r"((?P<length>[0-9]+(\.[0-9]+)?多?({length}))|" \
+                       r"(?P<weight>[0-9]+(\.[0-9]+)?多?({weight}))|" \
+                       r"(?P<time>[0-9]+(\.[0-9]+)?多?({time})))".format(**measure_str)
 
     # 特殊时间表达"如：差一刻三点"的汉字正则规则
     re_zh_num = {"1-4": "[一二三四]",
