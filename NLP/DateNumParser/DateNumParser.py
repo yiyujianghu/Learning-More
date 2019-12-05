@@ -321,13 +321,15 @@ class DateNumParser():
         datetime_data = self.datetime_parse(origin_content)
         final_content = self.measure_parse(datetime_data)
         self.res_content = final_content
+        self.display()
         return self.res_content
 
 
 
 if __name__ == "__main__":
-    parse = DateNumParser("在上周一下午五点差一刻的时候，他走了八千多公里的山路，花了大概一个半小时。")
+    # 仍有一些小的bug：比如闰年计算、月份天数不同、扩充单位、手机号/电话识别、"一直/一贯"等特定用法
+    # 可加入的解析项：正则解析其他项（简单城市名）、可加入断句分析并做消歧/指代消解/概念推断等
+    parse = DateNumParser("在上周一晚上十二点差一刻的时候，他走了八千多公里的山路，花了大概两个半小时，走到了上周二凌晨")
     parse.parse()
-    parse.display()
     print(parse.RESULT)
 
