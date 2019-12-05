@@ -134,6 +134,6 @@ class NumberExtract():
 
 
 if __name__ == '__main__':
-    print(NumberExtract.detect("这里有300人和两辆汽车，每年增长率十分之三，共需要一个半小时"))
+    print(NumberExtract.detect("这里有300人和两辆汽车，每年增长率百分之三十二，共需要一个半小时"))
 
 

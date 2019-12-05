@@ -106,7 +106,6 @@ class DateNumParser():
         pass
 
 
-
     def synonym_normalizer(self):
         pass
 
@@ -220,7 +219,10 @@ class DateNumParser():
             else:
                 print("时间日期数组长度出错")
                 return ""
-            BASE_DT = datetime.datetime(*BASE_DT_LIST)
+            try:
+                BASE_DT = datetime.datetime(*BASE_DT_LIST)
+            except:
+                BASE_DT = self.source_DT
             # 以下为日期推算
             BASE_WEEK = BASE_DT.strftime("%w")
             week_value = self.MASK_DT_CAL[content_mask_dict['cal_mask']]["week_value"]
@@ -263,7 +265,6 @@ class DateNumParser():
             analyzed_data_number = ""
         analyzed_data_unit = measure_data.replace(analyzed_data_number, "").replace("多", "")
         if unit:
-            analyzed_data_unit = Rules_of_Number.measure_dict[unit][analyzed_data_unit]
             analyzed_data_number = float(analyzed_data_number)*Rules_of_Number.measure_convert_dict[unit][analyzed_data_unit]
             analyzed_data_unit = Rules_of_Number.measure_convert_dict[unit]["std"]
         return analyzed_data_number, analyzed_data_unit
@@ -329,7 +330,7 @@ class DateNumParser():
 if __name__ == "__main__":
     # 仍有一些小的bug：比如闰年计算、月份天数不同、扩充单位、手机号/电话识别、"一直/一贯"等特定用法
     # 可加入的解析项：正则解析其他项（简单城市名）、可加入断句分析并做消歧/指代消解/概念推断等
-    parse = DateNumParser("在上周一晚上十二点差一刻的时候，他走了八千多公里的山路，花了大概两个半小时，走到了上周二凌晨")
+    parse = DateNumParser("在上周一下午三点差一刻的时候，他走了八千多公里的山路，花了大概两个半小时，回到家已经是11月30号深夜的")
     parse.parse()
     print(parse.RESULT)
 

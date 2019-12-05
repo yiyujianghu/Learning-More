@@ -14,7 +14,7 @@ class Rule_Method():
         try:
             dt_calculate_str = {}
             for k,v in dt_calculate_dict.items():
-                dt_k_str = "|".join(sorted([i for i in v.keys()], key=lambda x:len(x), reverse=True))
+                dt_k_str = "|".join(sorted([i for i in v.keys() if i != "std"], key=lambda x: len(x), reverse=True))
                 dt_calculate_str[k] = dt_k_str
             return dt_calculate_str
         except:
@@ -30,16 +30,12 @@ class Rule_Method():
 
 class Rules_of_Number():
     # 常见的计量单位及同义词转换
-    measure_dict = {"length": {"米":"m", "m":"m", "千米":"km", "公里":"km", "km":"km",
-                            "厘米":"cm", "cm":"cm", "毫米":"mm", "mm":"mm"},
-                        "weight": {"克":"g", "g":"g", "千克":"kg", "公斤":"kg", "kg":"kg"},
-                        "time": {"小时":"h", "分钟":"min", "秒":"s", "s":"s"}}
+    measure_convert_dict = {"length": {"米":1, "m":1, "千米":1000, "公里":1000, "km":1000, "里":500,
+                                       "厘米":0.01, "cm":0.01, "毫米":0.001, "mm":0.001, "std":"m"},
+                            "weight": {"千克":1, "kg":1, "公斤":1, "斤":0.5, "克":0.001, "g":0.001, "std":"kg"},
+                            "time": {"秒":1, "s":1, "小时":3600, "h":3600, "分钟":60, "min":60, "std":"s"}}
 
-    measure_convert_dict = {"length": {"m":1, "km":1000, "cm":0.01, "mm":0.001, "std":"m"},
-                                "weight": {"kg":1, "g":0.001, "std":"kg"},
-                                "time": {"s":1, "h":3600, "min":60, "std":"s"}}
-
-    measure_str = Rule_Method.dt_cal_str(measure_dict)
+    measure_str = Rule_Method.dt_cal_str(measure_convert_dict)
     measure_all_str = Rule_Method.unit_merge(measure_str)
 
     measure_rule = r"((?P<length>[0-9]+(\.[0-9]+)?多?({length}))|" \
@@ -88,9 +84,9 @@ class Rules_of_Number():
 
     # 所有的数字类型年月日时的正则规则，采用?P<group>提取时间并考虑六个参数都存在的情况
     datetime_dict = {'year_number': r"([1-9]\d)?\d{2}",
-                     'month_number': r"0?[1-9]|1[0-2]",
-                     'day_number': r"0?[1-9]|[1-2][0-9]|3[0-1]",
-                     'hour_number': r"(20|21|22|23|[0-1]?\d)",
+                     'month_number': r"(0?[1-9])|(1[0-2])",
+                     'day_number': r"(3[0-1])|([1-2][0-9])|(0?[1-9])",
+                     'hour_number': r"(20|21|22|23|([0-1]?\d))",
                      'min_sec_number': r"[0-5]?\d",
                      'measure_all_str':measure_all_str
                      }
@@ -108,12 +104,12 @@ class Rules_of_Number():
                     r"(?P<day>({day_number}))(?!({measure_all_str})))".format(**datetime_dict)
 
     date_ymd = r"(?P<year>({year_number})[-/年])" \
-               r"(?P<month>({month_number})*[-/月]*)" \
-               r"(?P<day>({day_number})*[日号]*)".format(**datetime_dict)
+               r"(?P<month>({month_number})*[-/月]?)" \
+               r"(?P<day>({day_number})*[日号]?)".format(**datetime_dict)
 
     date_md = r"(?P<year>)" \
               r"(?P<month>({month_number})[-/月])" \
-              r"(?P<day>({day_number})*[日号]*)".format(**datetime_dict)
+              r"(?P<day>({day_number})*[日号]?)".format(**datetime_dict)
 
     date_d = r"(?P<year>)" \
              r"(?P<month>)" \
@@ -126,11 +122,6 @@ class Rules_of_Number():
     MASK_RULE = r"((?P<cal_mask>(MASK_DT_CAL_I+_)的?)|" \
                 r"(?P<date_mask>(MASK_DATE_I+_)的?)|" \
                 r"(?P<time_mask>(MASK_TIME_I+_)的?))+"
-
-
-
-
-
 
 
 
