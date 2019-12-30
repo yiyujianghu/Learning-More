@@ -97,13 +97,13 @@ class Rules_of_Number():
                      r"(?P<month>({month_number}))(\.)" \
                      r"(?P<day>({day_number})))".format(**datetime_dict)
 
-    date_point_ym = r"((?P<year>({year_number}))(\.)" \
-                    r"(?P<month>({month_number}))(?!({measure_all_str}))" \
-                    r"(?P<day>))".format(**datetime_dict)
-
-    date_point_md = r"((?P<year>)" \
-                    r"(?P<month>({month_number}))(\.)" \
-                    r"(?P<day>({day_number}))(?!({measure_all_str})))".format(**datetime_dict)
+    # date_point_ym = r"((?P<year>({year_number}))(\.)" \
+    #                 r"(?P<month>({month_number}))(?!({measure_all_str}))" \
+    #                 r"(?P<day>))".format(**datetime_dict)
+    #
+    # date_point_md = r"((?P<year>)" \
+    #                 r"(?P<month>({month_number}))(\.)" \
+    #                 r"(?P<day>({day_number}))(?!({measure_all_str})))".format(**datetime_dict)
 
     date_ymd = r"(?P<year>({year_number})[-/年])" \
                r"(?P<month>({month_number})*[-/月]?)" \

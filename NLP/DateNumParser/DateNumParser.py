@@ -161,8 +161,7 @@ class DateNumParser():
 
     def datetime_std_parse(self, query, type="TIME"):
         if type == "DATE":
-            rules = [Rules_of_Number.date_point_ymd, Rules_of_Number.date_point_ym, Rules_of_Number.date_point_md,
-                     Rules_of_Number.date_ymd, Rules_of_Number.date_md, Rules_of_Number.date_d]
+            rules = [Rules_of_Number.date_point_ymd, Rules_of_Number.date_ymd, Rules_of_Number.date_md, Rules_of_Number.date_d]
             MASK_DICT = self.MASK_DATE
             MASK_STR = "MASK_DATE_{}_"
             dt_range = (0, 3)
