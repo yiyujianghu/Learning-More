@@ -23,7 +23,7 @@ class DateNumParser():
         self.MASK_DATE = {"count":0, "default":{'analyzed':[-1, -1, -1], 'original':""}}
         self.MASK_TIME = {"count":0, "default":{'analyzed':[-1, -1, -1], 'original':""}}
         self.MASK_FINAL = {"count":0}
-        self.RESULT = {}
+        self.result = {}
 
 
     def parseSourceDT(self, sourceDT):
@@ -304,14 +304,16 @@ class DateNumParser():
                         result_str = analyzed_info.strftime('%Y-%m-%d %H:%M:%S')
                     else:
                         result_str = "".join([str(analyzed_info[0]), analyzed_info[1]])
-                    if display_type not in self.RESULT:
-                        self.RESULT[display_type] = [result_str]
+                    if display_type not in self.result:
+                        self.result[display_type] = [result_str]
                     else:
-                        self.RESULT[display_type].append(result_str)
+                        self.result[display_type].append(result_str)
                 else:
                     result_str = "(未识别)"
                 result_str_display = "\033[4;32m{}\033[0m".format(result_str)
                 self.res_content = re.sub(mask_info, result_str_display, self.res_content)
+        if not self.result:
+            self.res_content = self.content
         print("\033[1;36m原始语句：\033[0m", self.content)
         print("\033[1;36m解析语句：\033[0m", self.res_content)
 
@@ -329,7 +331,7 @@ class DateNumParser():
 if __name__ == "__main__":
     # 仍有一些小的bug：比如闰年计算、月份天数不同、扩充单位、手机号/电话识别、"一直/一贯"等特定用法
     # 可加入的解析项：正则解析其他项（简单城市名）、可加入断句分析并做消歧/指代消解/概念推断等
-    parse = DateNumParser("在上周一下午三点差一刻的时候，他走了八千多公里的山路，花了大概两个半小时，回到家已经是11月30号深夜的")
+    parse = DateNumParser("上周二下午五点，你们一起走了三千米山路")
     parse.parse()
-    print(parse.RESULT)
+    print(parse.result)
 
