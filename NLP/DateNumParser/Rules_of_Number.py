@@ -86,7 +86,7 @@ class Rules_of_Number():
 
     # 所有的数字类型年月日时的正则规则，采用?P<group>提取时间并考虑六个参数都存在的情况
     datetime_dict = {'year_number': r"([1-9]\d)?\d{2}",
-                     'month_number': r"(0?[1-9])|(1[0-2])",
+                     'month_number': r"(1[0-2])|(0?[1-9])",
                      'day_number': r"(3[0-1])|([1-2][0-9])|(0?[1-9])",
                      'hour_number': r"(20|21|22|23|([0-1]?\d))",
                      'min_sec_number': r"[0-5]?\d",
