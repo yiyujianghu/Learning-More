@@ -331,7 +331,7 @@ class DateNumParser():
 if __name__ == "__main__":
     # 仍有一些小的bug：比如闰年计算、月份天数不同、扩充单位、手机号/电话识别、"一直/一贯"等特定用法
     # 可加入的解析项：正则解析其他项（简单城市名）、可加入断句分析并做消歧/指代消解/概念推断等
-    parse = DateNumParser("2019年10月5日")
+    parse = DateNumParser("2019年10月")
     parse.parse()
     print(parse.result)
 

@@ -107,7 +107,7 @@ class Rules_of_Number():
 
     date_ymd = r"(?P<year>({year_number})[-/年]?)" \
                r"(?P<month>({month_number})[-/月]?)" \
-               r"(?P<day>({day_number})[日号]?)".format(**datetime_dict)
+               r"(?P<day>({day_number})*[日号]?)".format(**datetime_dict)
 
     date_md = r"(?P<year>)" \
               r"(?P<month>({month_number})[-/月])" \
