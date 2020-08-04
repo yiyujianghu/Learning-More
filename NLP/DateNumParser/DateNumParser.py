@@ -18,6 +18,10 @@ class DateNumParser():
         self.content = content
         self.res_content = content
         self.source_DT = datetime.datetime.now() if not source_DT else self.parseSourceDT(source_DT)
+        self.single_parse_dict = {
+            "phone_num":Rules_of_Number.phone_rule,
+            "identification":Rules_of_Number.identification_card_rule
+        }
         # 以下四个属性是为了给数字日期等打MASK，便于循环检测到最后，然后按照标识依次拼接
         self.MASK_DT_CAL = {"count":0, "default":{"analyzed": {}, "original": "", "time_interval": -1, "week_value":-1}}
         self.MASK_DATE = {"count":0, "default":{'analyzed':[-1, -1, -1], 'original':""}}
@@ -101,15 +105,6 @@ class DateNumParser():
         else:
             return ""
 
-
-    def special_parse(self):
-        pass
-
-
-    def synonym_normalizer(self):
-        pass
-
-
     def datetime_offset_calculate(self, dt_cal_dict):
         # 目前此接口的问题就是：timedelta中没有年/月的偏置项，因此只能通过换算成天来计算，但考虑闰年和不同月份天数方面还有一些问题
         time_interval = Rules_of_Number.dt_calculate_dict["time_interval"][dt_cal_dict["time_interval"]]
@@ -161,7 +156,8 @@ class DateNumParser():
 
     def datetime_std_parse(self, query, type="TIME"):
         if type == "DATE":
-            rules = [Rules_of_Number.date_point_ymd, Rules_of_Number.date_ymd, Rules_of_Number.date_md, Rules_of_Number.date_d]
+            rules = [Rules_of_Number.date_point_ymd, Rules_of_Number.date_ymd, Rules_of_Number.date_ymd_join,
+                     Rules_of_Number.date_md, Rules_of_Number.date_d]
             MASK_DICT = self.MASK_DATE
             MASK_STR = "MASK_DATE_{}_"
             dt_range = (0, 3)
@@ -256,6 +252,19 @@ class DateNumParser():
         res_mask_dt = self.datetime_connect(res_content_std_date)
         return res_mask_dt
 
+    def single_parse(self, content):
+        res_content = content
+        for name, rule in self.single_parse_dict.items():
+            while re.search(rule, res_content):
+                self.MASK_FINAL["count"] += 1
+                content_single = re.search(rule, res_content).group()
+                MASK_MEASURE_FLAG = "MASK_FINAL_{}_".format(self.numeric_tag(self.MASK_FINAL["count"]))
+                self.MASK_FINAL[MASK_MEASURE_FLAG] = {"analyzed": content_single,
+                                                      "original": content_single,
+                                                      "type": name}
+                res_content = re.sub(content_single, MASK_MEASURE_FLAG, res_content)
+        return res_content
+
 
     def measure_standard(self, measure_data, unit=None):
         if re.search(r"[0-9]+(\.[0-9]+)?", measure_data):
@@ -288,8 +297,7 @@ class DateNumParser():
                     continue
         return res_content
 
-
-    def display(self):
+    def display(self, display_status=True):
         if self.MASK_FINAL["count"] > 0:
             while re.search(r"MASK_FINAL_I+_", self.res_content):
                 mask_info = re.search(r"MASK_FINAL_I+_", self.res_content).group()
@@ -302,6 +310,8 @@ class DateNumParser():
                 if analyzed_info and display_type:
                     if display_type == "datetime":
                         result_str = analyzed_info.strftime('%Y-%m-%d %H:%M:%S')
+                    elif display_type in self.single_parse_dict.keys():
+                        result_str = analyzed_info
                     else:
                         result_str = "".join([str(analyzed_info[0]), analyzed_info[1]])
                     if display_type not in self.result:
@@ -314,16 +324,19 @@ class DateNumParser():
                 self.res_content = re.sub(mask_info, result_str_display, self.res_content)
         if not self.result:
             self.res_content = self.content
-        print("\033[1;36m原始语句：\033[0m", self.content)
-        print("\033[1;36m解析语句：\033[0m", self.res_content)
+
+        if display_status:
+            print("\033[1;36m原始语句：\033[0m", self.content)
+            print("\033[1;36m解析语句：\033[0m", self.res_content)
 
 
-    def parse(self):
+    def parse(self, display_status=True):
         origin_content = self.content
-        datetime_data = self.datetime_parse(origin_content)
-        final_content = self.measure_parse(datetime_data)
+        single_data = self.single_parse(origin_content)         # 解析手机号/身份证号等单独正则信息
+        datetime_data = self.datetime_parse(single_data)        # 解析时间与日期
+        final_content = self.measure_parse(datetime_data)       # 解析计量单位数值
         self.res_content = final_content
-        self.display()
+        self.display(display_status)
         return self.res_content
 
 
@@ -331,7 +344,8 @@ class DateNumParser():
 if __name__ == "__main__":
     # 仍有一些小的bug：比如闰年计算、月份天数不同、扩充单位、手机号/电话识别、"一直/一贯"等特定用法
     # 可加入的解析项：正则解析其他项（简单城市名）、可加入断句分析并做消歧/指代消解/概念推断等
-    parse = DateNumParser("2019年10月")
-    parse.parse()
+    parse = DateNumParser("我想订明天中午12点的餐馆，走路一千多米能到，三百元以内，预留手机号为18619994211",
+                          source_DT=datetime.datetime(2000, 8, 8, 12, 30, 30))
+    parse.parse(display_status=True)
     print(parse.result)
 
