@@ -120,12 +120,32 @@ class NumberExtract():
             char_new = re.sub(detect_char, ArabicNumerals, char_new, count=1)
         return char_new
 
+    @classmethod
+    def unit_mix_detect(cls, query):
+        mix_rule = r"(?P<base_num>(\d+(.\d+)?))" \
+                   r"(?P<base_unit>(万亿|千亿|百亿|十亿|亿|千万|百万|十万|万|千|百))" \
+                   r"(?P<res_num>(\d+))?"
+        char_new = query
+        while re.search(mix_rule, char_new):
+            mix_content = re.search(mix_rule, char_new)
+            base_num = mix_content.group("base_num")
+            base_unit = mix_content.group("base_unit")
+            if mix_content.group("res_num"):
+                res_num = mix_content.group("res_num")
+            else:
+                res_num = "0"
+            base_unit_num = cls.unitchar2num("".join(["一", base_unit]))
+            mix_num = float(base_num) * float(base_unit_num) + \
+                      float(res_num) * float(base_unit_num) * 10**(-len(res_num))
+            char_new = re.sub(mix_rule, str(mix_num), char_new)
+        return char_new
 
     @classmethod
     def detect(cls, query):
         try:
             char_new = cls.decimal_detect(query)
             char_new = cls.fraction_detect(char_new)
+            char_new = cls.unit_mix_detect(char_new)
             char_new = cls.integer_detect(char_new)
             return char_new
         except:
@@ -134,6 +154,9 @@ class NumberExtract():
 
 
 if __name__ == '__main__':
-    print(NumberExtract.detect("这里有300人和两辆汽车，每年增长率百分之三十二，共需要一个半小时"))
+    # print(NumberExtract.detect("这里有三百个人和两辆汽车，每年增长率百分之三十二，共需要17万58小时"))
+    print(NumberExtract.detect("我想订明天中午12点的餐馆，三个人，走路一千多米能到，17.5万元以内，预留手机号为18619994211，明天23摄氏度"))
+    # print(NumberExtract.unit_mix_detect("今年打算投入4.5万亿元"))
+
 
 
