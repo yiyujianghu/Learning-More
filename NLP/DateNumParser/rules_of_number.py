@@ -2,7 +2,7 @@
 # encoding: utf-8
 """
 @author: Dong Jun
-@file: Rules_of_Number.py
+@file: rules_of_number.py
 @time: 2019/12/1 5:28 下午
 """
 
@@ -79,7 +79,8 @@ class Rules_of_Number():
                          "days":{"大前天":-3, "前天":-2, "前一天":-1, "昨天":-1, "昨日":-1,
                                  "今天":0, "今日":0, "现在":0,
                                  "明天":1, "明日":1, "后天":2, "大后天":3, "default":0},
-                         "time_interval":{"凌晨":2, "清晨":6, "早晨":7, "上午":9, "中午":12, "午后":13, "下午":15, "傍晚":18, "晚上":19, "深夜":23, "default":-1}}
+                         "time_interval":{"凌晨":2, "清晨":6, "早晨":7, "上午":9, "中午":12, "午后":13, "下午":15,
+                                          "傍晚":18, "晚上":19, "深夜":23, "default":-1}}
 
     dt_calculate_str = Rule_Method.dt_cal_str(dt_calculate_dict)
     dt_calculate_str["number"] = r"[0-9一二三四五六七八九十两百千万]"
@@ -149,5 +150,5 @@ class Rules_of_Number():
 
 
 if __name__ == "__main__":
-    query = "我电话是18978906789,而你的电话是13890908989"
-    print(re.search(Rules_of_Number.phone_rule, query).group())
+    query = "去年的一天"
+    print(re.search(Rules_of_Number.dt_calculate_rule, query).group())

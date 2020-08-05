@@ -2,7 +2,7 @@
 # encoding: utf-8
 """
 @author: Dong Jun
-@file: DateNumParser.py
+@file: date_num_parser.py
 @time: 2019/11/30 5:48 下午
 """
 
@@ -10,7 +10,7 @@
 import time, datetime
 import re
 from number_extract import NumberExtract
-from Rules_of_Number import Rules_of_Number
+from rules_of_number import Rules_of_Number
 
 
 class DateNumParser():
@@ -121,13 +121,13 @@ class DateNumParser():
                 continue
         week_value = dt_offset["week_value"]
         time_delta_dict = {}
-        time_delta_dict["weeks"] = Rules_of_Number.dt_calculate_dict["weeks"][dt_cal_dict["weeks"]] + dt_offset["week_offset"]
-        time_delta_dict["days"] = (Rules_of_Number.dt_calculate_dict["days"][dt_cal_dict["days"]] + dt_offset["day_offset"]) + \
-                                  (Rules_of_Number.dt_calculate_dict["months"][dt_cal_dict["months"]] + dt_offset["month_offset"]) * 30 + \
-                                  (Rules_of_Number.dt_calculate_dict["years"][dt_cal_dict["years"]] + dt_offset["year_offset"]) * 365
-        time_delta_dict["hours"] = dt_offset["hour_offset"]
-        time_delta_dict["minutes"] = dt_offset["minute_offset"]
-        time_delta_dict["seconds"] = dt_offset["second_offset"]
+        time_delta_dict["weeks"] = Rules_of_Number.dt_calculate_dict["weeks"][dt_cal_dict["weeks"]] + int(dt_offset["week_offset"])
+        time_delta_dict["days"] = (Rules_of_Number.dt_calculate_dict["days"][dt_cal_dict["days"]] + int(dt_offset["day_offset"])) + \
+                                  (Rules_of_Number.dt_calculate_dict["months"][dt_cal_dict["months"]] + int(dt_offset["month_offset"])) * 30 + \
+                                  (Rules_of_Number.dt_calculate_dict["years"][dt_cal_dict["years"]] + int(dt_offset["year_offset"])) * 365
+        time_delta_dict["hours"] = int(dt_offset["hour_offset"])
+        time_delta_dict["minutes"] = int(dt_offset["minute_offset"])
+        time_delta_dict["seconds"] = int(dt_offset["second_offset"])
         return time_delta_dict, time_interval, week_value
 
 
@@ -344,8 +344,9 @@ class DateNumParser():
 if __name__ == "__main__":
     # 仍有一些小的bug：比如闰年计算、月份天数不同、扩充单位、手机号/电话识别、"一直/一贯"等特定用法
     # 可加入的解析项：正则解析其他项（简单城市名）、可加入断句分析并做消歧/指代消解/概念推断等
-    parse = DateNumParser("我想订明天中午12点的餐馆，三个人，走路一千多米能到，17.5万元以内，预留手机号为18619994211，明天23摄氏度",
-                          source_DT=datetime.datetime(2000, 8, 8, 12, 30, 30))
+    # parse = DateNumParser("我想订明天中午12点的餐馆，三个人，走路一千多米能到，17.5万元以内，预留手机号为18619994211，明天23摄氏度",
+    #                       source_DT=datetime.datetime(2000, 8, 8, 12, 30, 30))
+    parse = DateNumParser("两年之前",)
     parse.parse(display_status=True)
     print(parse.result)
 

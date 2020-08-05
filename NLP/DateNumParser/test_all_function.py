@@ -11,7 +11,7 @@ Notes:...
 
 from datetime import datetime
 import unittest
-from DateNumParser import DateNumParser
+from date_num_parser import DateNumParser
 
 
 class TestFunction(unittest.TestCase):
@@ -102,13 +102,42 @@ class TestFunction(unittest.TestCase):
         input_texts = [
             "昨天下午差一刻两点的时候",
             "去年今天的下午一点半",
-            "上周五的晚上八点",
+            "上周五晚上的八点十分",
+
+            "两年之前",
+            "两月之前",
+            "两周之前",
+            "两天之前",
+            "两小时之前",
+            "两分钟之前",
+
+            "又过了两年",
+            "又过了两月",
+            "又过了两星期",
+            "又过了两天",
+            "又过了两小时",
+            "又过了两分钟",
         ]
 
         target_results = [
             "2000-08-07 13:45:30",
             "1999-08-09 13:30:30",
-            "2000-08-04 20:00:30",
+            "2000-08-04 20:10:30",
+
+            "1998-08-09 12:30:30",
+            "2000-06-09 12:30:30",
+            "2000-07-25 12:30:30",
+            "2000-08-06 12:30:30",
+            "2000-08-08 10:30:30",
+            "2000-08-08 12:28:30",
+
+            "2002-08-08 12:30:30",
+            "2000-10-07 12:30:30",
+            "2000-08-22 12:30:30",
+            "2000-08-10 12:30:30",
+            "2000-08-08 14:30:30",
+            "2000-08-08 12:32:30",
+
         ]
         for text, target in zip(input_texts, target_results):
             self.assertEqual(self.date_calculate(text), target)
